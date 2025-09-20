@@ -1,0 +1,7 @@
+__pycaches__/*
+build/*
+dist/*
+.DS_Store
+.vscode/*
+*.pyc
+afterbuild.json
