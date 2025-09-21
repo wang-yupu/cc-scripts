@@ -8,19 +8,33 @@ private extern class CC_redstone {
 	static function getOutput(side:String):Bool;
 }
 
-class Redstone {
-	public static function setOutput(side:Side, state:Bool):Void {
-		CC_redstone.setOutput(getSideName(side), state);
-		return;
+class RedstonePin {
+	private var side:Side;
+
+	public function new(side:Side, state:Bool = false) {
+		this.side = side;
+		this.set(state);
 	}
 
-	public static function pulse(side:Side, time:Float = 0.1, reverse:Bool = false):Void {
-		if (CC_redstone.getOutput(getSideName(side)) && !reverse) {
+	public function set(state:Bool) {
+		CC_redstone.setOutput(getSideName(side), state);
+	}
+
+	public function pulse(time:Float = 0.1, reverse:Bool = false):Void {
+		var side:String = getSideName(this.side);
+		if (CC_redstone.getOutput(side) && !reverse) {
 			return;
 		}
-		CC_redstone.setOutput(getSideName(side), !reverse);
+		CC_redstone.setOutput(side, !reverse);
 		Base.sleep(time);
-		CC_redstone.setOutput(getSideName(side), reverse);
+		CC_redstone.setOutput(side, reverse);
+	}
+}
+
+class Redstone {
+	private static function setOutput(side:Side, state:Bool):Void {
+		CC_redstone.setOutput(getSideName(side), state);
+		return;
 	}
 
 	public static function setAll(state:Bool = false) {

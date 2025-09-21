@@ -8,7 +8,8 @@ class Main {
 	static function main() {
 		Redstone.setAll(false);
 		Base.print("set all sides to false");
-		Redstone.pulse(Side.TOP);
+		var Top = new RedstonePin(Side.TOP);
+		Top.pulse();
 		Base.print("Sending a pulse");
 	}
 }

@@ -5,7 +5,7 @@
 
 ## 构建脚本
 
-> 所有脚本都在`cct-scripts.wangyupu.com`下提供压缩版本和无压缩版本和安装器版本。
+> 所有脚本都在`cct-scripts.wangyupu.com`下提供原始版本和安装器版本。
 
 ### 安装工具链软件
 
@@ -17,8 +17,11 @@
 
 #### 然后你需要做
 
-`luarocks install uasrcdiet`
+`luarocks install luasrcdiet`
 `npm install -g luabundler` / `pnpm i -g luabundler`
+`pip install -r requirements.txt`
+
+> 注：确保`luasrcdiet`、`luabundler`和`luarocks`都能被执行（可执行文件在PATH中）
 
 ## 工具链介绍
 

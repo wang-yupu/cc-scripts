@@ -5,3 +5,4 @@ dist/*
 .vscode/*
 *.pyc
 afterbuild.json
+lua_modules/*
