@@ -22,8 +22,8 @@ class Subprocess:
 
     def read(self) -> str:
         if self.process:
-            out, _ = self.process.communicate()
-            return out
+            out, err = self.process.communicate()
+            return out+err
         else:
             raise Exception("No process!")
 

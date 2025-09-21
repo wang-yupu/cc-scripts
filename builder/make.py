@@ -25,8 +25,10 @@ class BuildStatus(Enum):
 
 class BuildStep:
     state: BuildStatus
+    size: int
+    finalFileName: str
 
-    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path) -> None:
+    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path, minify=True) -> None:
         # 检查是否存在那个脚本
         scriptRoot = scriptDir / Path(script)
         if not scriptRoot.exists():
@@ -54,11 +56,13 @@ class BuildStep:
         buildBase = buildDir / script
         if not buildBase.exists():
             buildBase.mkdir()
-        steps: list[tuple[list[str], str]] = [
-            (["haxe", "-cp", 'src/scripts', '-cp', 'src/libs', '--lua', str(buildBase/"a.lua"), '-D', 'lua-vanilla', '-dce', 'full', '-main', f'{script}.Main'], "Haxe -> Lua"),
-            (["echo", "d"], "捆绑多个Lua文件"),
-            (["luasrcdiet", str(buildBase/"a.lua"), '-o', str(buildBase/"final.lua"), "--opt-locals", "--opt-whitespace", '--opt-eols', '--opt-numbers', '--opt-strings'], "简化Lua文件"),
+        current = ""
+        steps: list[tuple[list[str], str, str]] = [
+            (["haxe", "-cp", 'src/scripts', '-cp', 'src/libs', '--lua', str(buildBase/"haxe.lua"), '-D', 'lua-vanilla', '-dce', 'full', '-main', f'{script}.Main'], "Haxe -> Lua", "haxe.lua"),
+            (["echo", "d"], "捆绑多个Lua文件", "haxe.lua"),
         ]
+        if minify:
+            steps.append((["luasrcdiet", str(buildBase/current), '-o', str(buildBase/"minify.lua"), "--opt-locals", "--opt-whitespace", '--opt-eols', '--noequiv'], "简化Lua文件", 'minify.lua'),)
 
         for step in steps:
             logging.info(f"正在进行: {step[1]}")
@@ -69,9 +73,12 @@ class BuildStep:
                 print(v)
                 self.state = BuildStatus.Failed
                 return
+            current = step[2]
 
-        finalFile = (buildBase/"final.lua")
+        finalFile = (buildBase/current)
         distFile = (distDir/f"{script}_{meta.version}.lua")
         shutil.copyfile(finalFile, distFile)
 
+        self.size = finalFile.stat().st_size
         self.state = BuildStatus.Success
+        self.finalFileName = current

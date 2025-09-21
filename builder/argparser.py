@@ -37,6 +37,12 @@ class ArgumentParser:
             help="若启用after-build，会将脚本写入对应计算机"
         )
 
+        parser.add_argument(
+            "--minify",
+            action="store_true",
+            help="简化生成的代码"
+        )
+
         # 构建模式
         mode_group = parser.add_mutually_exclusive_group()
         mode_group.add_argument(
@@ -64,6 +70,7 @@ class ArgumentParser:
         self.installer = args.installer
         self.skipEnviromentCheck = args.skip_enviroment_check
         self.skipLuaDependenciesCheck = args.skip_lua_dependencies_check
+        self.minify = args.minify
 
     def __repr__(self):
         """便于调试时打印配置"""

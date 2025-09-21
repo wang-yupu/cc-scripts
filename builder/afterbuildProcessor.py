@@ -26,12 +26,14 @@ class AfterBuildProcessor:
             quit(1)
         self.config = AfterbuildConfig(Path(cfg.get("ccDir", "")), cfg.get("name", ""), computerID)
 
-    def process(self, script: str, buildDir: Path) -> None:
+    def process(self, script: str, buildDir: Path, filename: str) -> None:
         logging.info("正在复制代码")
-        src = buildDir / script / "final.lua"
+        src = buildDir / script / filename
         dest = self.config.ccDir / "computer" / str(self.config.computerID) / self.config.filename
         destDir = self.config.ccDir / "computer" / str(self.config.computerID)
-
+        computerDir = self.config.ccDir / "computer"
+        if not computerDir.exists():
+            computerDir.mkdir()
         if not destDir.exists():
             destDir.mkdir()
 
