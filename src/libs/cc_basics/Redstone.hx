@@ -20,7 +20,7 @@ class RedstonePin {
 		CC_redstone.setOutput(getSideName(side), state);
 	}
 
-	public function pulse(time:Float = 0.1, reverse:Bool = false):Void {
+	public function pulse(time:Float = 0.1, reverse:Bool = false, waitAfterPulse:Bool = true):Void {
 		var side:String = getSideName(this.side);
 		if (CC_redstone.getOutput(side) && !reverse) {
 			return;
@@ -28,6 +28,9 @@ class RedstonePin {
 		CC_redstone.setOutput(side, !reverse);
 		Base.sleep(time);
 		CC_redstone.setOutput(side, reverse);
+		if (waitAfterPulse) {
+			Base.sleep(time);
+		}
 	}
 }
 

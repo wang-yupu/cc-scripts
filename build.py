@@ -8,6 +8,7 @@ import builder.ensureEnviroment as enviroment
 import builder.loggerUtil as loggerUtil
 import builder.luaDependenciesChecker as ldc
 import builder.make as make
+import builder.afterbuildProcessor as abp
 
 LUA_DEPENDENCIES = [
     "nbt"
@@ -19,10 +20,13 @@ DIST_DIR = pathlib.Path("./dist")
 SCRIPTS_DIR = pathlib.Path("./src/scripts")
 LIBS_DIR = pathlib.Path("./src/libs")
 WATCHDOG_WATCH_DIR = pathlib.Path("./src")
+AFTERBUILD_CONFIG = pathlib.Path("./afterbuild.json")
 
 
-def build(script: str) -> bool:
-    make.BuildStep(SCRIPTS_DIR, script, BUILD_DIR, DIST_DIR)
+def build(noQuit: bool = False) -> bool:
+    make.BuildStep(SCRIPTS_DIR, args.script, BUILD_DIR, DIST_DIR, noQuit)
+    if args.runAfterBuild and args.afterBuildID is not None:
+        abp.AfterBuildProcessor(AFTERBUILD_CONFIG, args.afterBuildID).process(args.script, BUILD_DIR)
     return True
 
 
@@ -60,11 +64,11 @@ if __name__ == "__main__":
         logging.info("启动循环构建模式")
         while True:
             logging.info("正在构建")
-            build(args.script)
+            build(True)
             logging.log(25, "构建成功")
             wd.wait()
             logging.info("检测到文件有修改")
     else:
-        build(args.script)
+        build()
 
     logging.log(25, "构建成功")

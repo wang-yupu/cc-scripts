@@ -1,12 +1,12 @@
 #
+import json
 import logging
+import shutil
+from dataclasses import dataclass
 from pathlib import Path
 
 import builder.subprocessUtil as su
-import shutil
-from dataclasses import dataclass
 from builder.ensureEnviroment import Version
-import json
 
 
 @dataclass
@@ -17,7 +17,7 @@ class Metadata:
 
 
 class BuildStep:
-    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path) -> None:
+    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path, noQuit: bool = False) -> None:
         # 检查是否存在那个脚本
         scriptRoot = scriptDir / Path(script)
         if not scriptRoot.exists():
@@ -57,7 +57,8 @@ class BuildStep:
             if r.getReturn() != 0:
                 logging.error(f"构建步骤失败（返回值不为0: {r.getReturn()}）")
                 print(v)
-                quit(1)
+                if not noQuit:
+                    quit(1)
 
         finalFile = (buildBase/"final.lua")
         distFile = (distDir/f"{script}_{meta.version}.lua")
