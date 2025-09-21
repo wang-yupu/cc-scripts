@@ -7,6 +7,7 @@ from pathlib import Path
 
 import builder.subprocessUtil as su
 from builder.ensureEnviroment import Version
+from enum import Enum
 
 
 @dataclass
@@ -16,8 +17,16 @@ class Metadata:
     version: Version
 
 
+class BuildStatus(Enum):
+    NoMain = 0,
+    Failed = 1,
+    Success = 999
+
+
 class BuildStep:
-    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path, noQuit: bool = False) -> None:
+    state: BuildStatus
+
+    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path) -> None:
         # 检查是否存在那个脚本
         scriptRoot = scriptDir / Path(script)
         if not scriptRoot.exists():
@@ -39,7 +48,8 @@ class BuildStep:
                 logging.warning("目标脚本元数据文件读取失败，将自动补全元数据")
         if not scriptMain.exists():
             logging.fatal("目标脚本没有`Main.hx`")
-            quit(1)
+            self.state = BuildStatus.NoMain
+            return
 
         buildBase = buildDir / script
         if not buildBase.exists():
@@ -57,9 +67,11 @@ class BuildStep:
             if r.getReturn() != 0:
                 logging.error(f"构建步骤失败（返回值不为0: {r.getReturn()}）")
                 print(v)
-                if not noQuit:
-                    quit(1)
+                self.state = BuildStatus.Failed
+                return
 
         finalFile = (buildBase/"final.lua")
         distFile = (distDir/f"{script}_{meta.version}.lua")
         shutil.copyfile(finalFile, distFile)
+
+        self.state = BuildStatus.Success

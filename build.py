@@ -23,8 +23,12 @@ WATCHDOG_WATCH_DIR = pathlib.Path("./src")
 AFTERBUILD_CONFIG = pathlib.Path("./afterbuild.json")
 
 
-def build(noQuit: bool = False) -> bool:
-    make.BuildStep(SCRIPTS_DIR, args.script, BUILD_DIR, DIST_DIR, noQuit)
+def build() -> bool:
+    m = make.BuildStep(SCRIPTS_DIR, args.script, BUILD_DIR, DIST_DIR)
+    if m.state == make.BuildStatus.Failed:
+        return False
+    elif m.state == make.BuildStatus.NoMain:
+        quit(1)
     if args.runAfterBuild and args.afterBuildID is not None:
         abp.AfterBuildProcessor(AFTERBUILD_CONFIG, args.afterBuildID).process(args.script, BUILD_DIR)
     return True
@@ -64,11 +68,16 @@ if __name__ == "__main__":
         logging.info("启动循环构建模式")
         while True:
             logging.info("正在构建")
-            build(True)
-            logging.log(25, "构建成功")
+            s = build()
+            if s:
+                logging.log(25, "构建成功")
+            else:
+                logging.warning("构建失败")
             wd.wait()
             logging.info("检测到文件有修改")
     else:
-        build()
-
-    logging.log(25, "构建成功")
+        s = build()
+        if s:
+            logging.log(25, "构建成功")
+        else:
+            logging.warning("构建失败")

@@ -22,7 +22,3 @@
 `pip install -r requirements.txt`
 
 > 注：确保`luasrcdiet`、`luabundler`和`luarocks`都能被执行（可执行文件在PATH中）
-
-## 工具链介绍
-
-Lua的语法有点怪，因此选择了[Haxe](https://haxe.org/)编译为Lua后
