@@ -19,6 +19,10 @@ class Peripheral {
 		} else {
 			this.id = id;
 		}
+
+		if (!this.isPresent()) {
+			Base.print("Lib Warning [Peripheral]: The peripheral is not exists: ", this.id);
+		}
 	}
 
 	public function isPresent():Bool {

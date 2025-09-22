@@ -104,10 +104,13 @@ class GenericInventory extends Peripheral {
 			Base.print("Lib Warning [GenericInventory]: The peripheral is not exists.");
 			return;
 		}
+		for (i in 0...this.slots.length) {
+			this.slots[i] = new Slot(this, {name: null, count: 0}, i);
+		}
 		var raw:Array<ItemDetail> = this.getRawList();
 		for (key in Reflect.fields(raw)) {
 			var value = Reflect.field(raw, key);
-			this.slots[Std.parseInt(key) - 1].overrideItem(value);
+			this.slots[Std.parseInt(key) - 1] = new Slot(this, value, Std.parseInt(key) - 1);
 		}
 	}
 
