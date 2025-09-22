@@ -23,6 +23,11 @@ class BuildStatus(Enum):
     Success = 999
 
 
+class ReplaceTo(Enum):
+    current = 1
+    sthInBuildBase = 2
+
+
 class BuildStep:
     state: BuildStatus
     size: int
@@ -57,16 +62,44 @@ class BuildStep:
         if not buildBase.exists():
             buildBase.mkdir()
         current = ""
-        steps: list[tuple[list[str], str, str]] = [
-            (["haxe", "-cp", 'src/scripts', '-cp', 'src/libs', '--lua', str(buildBase/"haxe.lua"), '-D', 'lua-vanilla', '-dce', 'full', '-main', f'{script}.Main'], "Haxe -> Lua", "haxe.lua"),
+        steps: list[tuple[list[str | ReplaceTo | tuple[ReplaceTo, str]], str, str]] = [
+            (["haxe", "-cp", 'src/scripts', '-cp', 'src/libs', '--lua', (ReplaceTo.sthInBuildBase, "haxe.lua"), '-D', 'lua-vanilla', '-dce', 'full', '-main', f'{script}.Main'], "Haxe -> Lua", "haxe.lua"),
             (["echo", "d"], "捆绑多个Lua文件", "haxe.lua"),
         ]
         if minify:
-            steps.append((["luasrcdiet", str(buildBase/current), '-o', str(buildBase/"minify.lua"), "--opt-locals", "--opt-whitespace", '--opt-eols', '--noequiv'], "简化Lua文件", 'minify.lua'),)
+            steps.append((["luasrcdiet", ReplaceTo.current, '-o', (ReplaceTo.sthInBuildBase, "minify.lua"), "--opt-locals", "--opt-whitespace", '--opt-eols'], "简化Lua文件", 'minify.lua'),)
 
         for step in steps:
-            logging.info(f"正在进行: {step[1]}")
-            r = su.Subprocess(step[0])
+            logging.info(f"正在进行: {step[1]} (使用 '{current}')")
+            cmds: list[str] = []
+            for i in step[0]:
+                if isinstance(i, str):
+                    cmds.append(i)
+                elif isinstance(i, ReplaceTo):
+                    match i:
+                        case ReplaceTo.current:
+                            cmds.append(str(buildBase/current))
+                        case _:
+                            logging.fatal("错误的构建命令定义！(4)")
+                            quit(1)
+                elif isinstance(i, tuple):
+                    if len(i) < 2:
+                        logging.fatal("错误的构建命令定义！(1)")
+                        quit(1)
+                    if isinstance(i[0], ReplaceTo) and isinstance(i[1], str):
+                        match i[0]:
+                            case ReplaceTo.sthInBuildBase:
+                                cmds.append(str(buildBase/i[1]))
+                            case _:
+                                logging.fatal("错误的构建命令定义！(3)")
+                                quit(1)
+                    else:
+                        logging.fatal("错误的构建命令定义！(2)")
+                        quit(1)
+            logging.info(f"命令: {' '.join(cmds)}")
+            logging.info(f"将输出文件: {step[2]}")
+
+            r = su.Subprocess(cmds)
             v = r.read()
             if r.getReturn() != 0:
                 logging.error(f"构建步骤失败（返回值不为0: {r.getReturn()}）")
