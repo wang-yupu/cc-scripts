@@ -74,12 +74,17 @@ private class Slot {
 		this.item = item;
 	}
 
+	public inline function isEmpty():Bool {
+		return this.item.count == 0 && this.item.name == null;
+	}
+
 	public function tryReadNBT() {}
 }
 
 class GenericInventory extends Peripheral {
 	private var slots:Array<Slot>;
 	private var blockReader:BlockReader;
+	private var lastSync:Float;
 
 	public function new(id:EitherType<cc_basics.Side.Side, String>) {
 		super(id);
@@ -88,6 +93,7 @@ class GenericInventory extends Peripheral {
 		for (i in 0...size) {
 			this.slots.push(new Slot(this, {name: null, count: 0}, i));
 		}
+		this.lastSync = -10;
 	}
 
 	private function getRawList():Array<ItemDetail> {
@@ -113,8 +119,6 @@ class GenericInventory extends Peripheral {
 			this.slots[Std.parseInt(key) - 1] = new Slot(this, value, Std.parseInt(key) - 1);
 		}
 	}
-
-	private var lastSync:Float;
 
 	public function trigSync() {
 		if (Base.clock() - this.lastSync > 3) {

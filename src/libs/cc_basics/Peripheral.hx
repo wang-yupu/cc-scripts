@@ -30,6 +30,7 @@ class Peripheral {
 	}
 
 	private inline function call(method:String, args:Rest<Any>):Any {
+		// Base.print(this.id, " :: ", method, " @ ", args);
 		return CC_Peripheral.call(this.id, method, ...args);
 	}
 

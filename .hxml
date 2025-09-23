@@ -1,3 +1,4 @@
 #
 -cp src/scripts
 -cp src/libs
+-cp src/installer
