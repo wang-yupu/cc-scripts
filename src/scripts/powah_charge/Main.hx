@@ -12,6 +12,73 @@ typedef Recipe = {
 }
 
 class Main {
+	// =========================================================
+	// Craft one recipe
+	// =========================================================
+	static function craftRecipe(recipe:Recipe, read:GenericInventory, orb:GenericInventory, write:GenericInventory, spk:Speaker) {
+		var orbSlotNow = 1;
+
+		Base.print("Crafting: ", recipe.output);
+		spk.playNote(Instrument.bell, Note.Ds4, 2.0);
+
+		// ---------- collect requirements ----------
+		var need = new Map<String, Int>();
+		for (ingredient in recipe.inputs) {
+			if (!need.exists(ingredient))
+				need.set(ingredient, 0);
+			need.set(ingredient, need.get(ingredient) + 1);
+		}
+
+		// ---------- push ingredients ----------
+		for (ingredient => count in need) {
+			var remaining = count;
+			for (rslot in read) {
+				if (remaining <= 0)
+					break;
+				if (!rslot.isEmpty() && rslot.getItem(false).name == ingredient) {
+					var moved = rslot.pushTo(orb.slotAt(orbSlotNow), 1);
+					if (moved.getParameters()[0] > 0) {
+						orbSlotNow++;
+						remaining--;
+					}
+				}
+			}
+			if (remaining > 0) {
+				Base.print("Missing ingredient: ", ingredient, " need ", remaining, " more");
+				return false;
+			}
+		}
+
+		Base.print("Ingredients pushed, waiting for crafting...");
+
+		// ---------- wait for result ----------
+		var timeout = 200; // max ticks
+		while (timeout > 0) {
+			orb.sync();
+			var result = orb.slotAt(0).getItem(false);
+			if (!orb.slotAt(0).isEmpty() && result.name == recipe.output) {
+				break;
+			}
+			Base.sleep0();
+			timeout--;
+		}
+		if (timeout <= 0) {
+			Base.print("Craft timeout: ", recipe.output);
+			return false;
+		}
+
+		// ---------- output result ----------
+		Base.print("Craft complete, moving to output...");
+		orb.slotAt(0).pushToInventory(write);
+		spk.playNote(Instrument.bell, Note.F5, 2.0);
+		Base.print("Done: ", recipe.output);
+
+		return true;
+	}
+
+	// =========================================================
+	// Main program
+	// =========================================================
 	public inline static function main() {
 		Base.print("Powah Charge Orb autocrafting Script");
 		var orb = new GenericInventory("powah:energizing_orb_0");
@@ -35,52 +102,32 @@ class Main {
 				]
 			},
 		];
-		// 结束
 
 		spk.playNote(Instrument.pling, Note.Fs5, 2.0);
-		var orbSlotNow = 1, r0, founded = false;
+
+		// main loop
 		while (true) {
 			read.sync();
+			var crafted = false;
+
 			for (slot in read) {
 				if (!slot.isEmpty()) {
-					founded = true;
+					var itemName = slot.getItem(false).name;
 					for (recipe in recipes) {
-						if (recipe.inputs[0] == slot.getItem(false).name) {
-							Base.print("Crafting: ", recipe.output);
-							spk.playNote(Instrument.bell, Note.Ds4, 2.0);
-							orb.sync();
-							for (ingredient in recipe.inputs) {
-								for (rslot in read) {
-									if (rslot.isEmpty()) {
-										continue;
-									}
-									if (rslot.getItem(false).name == ingredient) {
-										r0 = rslot.pushTo(orb.slotAt(orbSlotNow), 1);
-										orbSlotNow++;
-									}
-								}
-							}
-							Base.print("Ingredient pushed, awaiting. max slot: #", orbSlotNow);
-							while (true) {
-								orb.sync();
-								if (orb.slotAt(0).getItem(false).name == recipe.output) {
-									break;
-								}
-							}
-							Base.print("Craft done. Outputing...");
-							orb.slotAt(0).pushToInventory(write);
-							Base.print("Done.");
-							spk.playNote(Instrument.bell, Note.F5, 2.0);
+						if (recipe.inputs[0] == itemName) {
+							var success = craftRecipe(recipe, read, orb, write, spk);
+							if (success)
+								crafted = true;
 						}
 					}
 				}
 			}
-			orbSlotNow = 1;
-			Base.sleep0();
-			if (!founded) {
-				Base.sleep(2);
+
+			if (!crafted) {
+				Base.sleep(2); // no craft, idle
+			} else {
+				Base.sleep0(); // crafted something, short delay
 			}
-			founded = false;
 		}
 	}
 }
