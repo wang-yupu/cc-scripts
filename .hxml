@@ -2,3 +2,4 @@
 -cp src/scripts
 -cp src/libs
 -cp src/installer
+-D fmtmain=main
