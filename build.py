@@ -1,3 +1,4 @@
+#!/bin/python
 # 构建工具
 import logging
 import pathlib
