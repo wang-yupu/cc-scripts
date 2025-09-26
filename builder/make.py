@@ -49,11 +49,14 @@ class BuildStep:
         self._doMinify = minify
         self._doBundle = bundle
 
-        self._checkBasics()
-        self._processMetadata()
-        self._processSteps()
-        self._runCommands()
-        self._doFinal()
+        try:
+            self._checkBasics()
+            self._processMetadata()
+            self._processSteps()
+            self._runCommands()
+            self._doFinal()
+        except:
+            return
 
     _script: str
     _scriptDir: Path
@@ -75,7 +78,7 @@ class BuildStep:
         scriptRoot = self._scriptDir / Path(self._script)
         if not scriptRoot.exists():
             logging.fatal("目标脚本不存在")
-            quit(1)
+            raise Exception()
         self._scriptMeta = scriptRoot / "meta.json"
         self._scriptMain = scriptRoot / "Main.hx"
 
@@ -144,21 +147,21 @@ class BuildStep:
                             cmds.append(str(self._buildBase/current))
                         case _:
                             logging.fatal("错误的构建命令定义！(4)")
-                            quit(1)
+                            raise Exception()
                 elif isinstance(i, tuple):
                     if len(i) < 2:
                         logging.fatal("错误的构建命令定义！(1)")
-                        quit(1)
+                        raise Exception()
                     if isinstance(i[0], ReplaceTo) and isinstance(i[1], str):
                         match i[0]:
                             case ReplaceTo.sthInBuildBase:
                                 cmds.append(str(self._buildBase/i[1]))
                             case _:
                                 logging.fatal("错误的构建命令定义！(3)")
-                                quit(1)
+                                raise Exception()
                     else:
                         logging.fatal("错误的构建命令定义！(2)")
-                        quit(1)
+                        raise Exception()
             logging.info(f"命令: {' '.join(cmds)}")
             logging.info(f"将输出文件: {step[2]}")
 
@@ -168,7 +171,7 @@ class BuildStep:
                 logging.error(f"构建步骤失败（返回值不为0: {r.getReturn()}）")
                 print(v)
                 self.state = BuildStatus.Failed
-                quit(1)
+                raise Exception()
             current = step[2]
 
         self._makedFileName = current
