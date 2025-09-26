@@ -31,6 +31,12 @@ class ArgumentParser:
         )
 
         parser.add_argument(
+            "--disable-bundle",
+            action="store_true",
+            help="不捆绑Lua文件"
+        )
+
+        parser.add_argument(
             "--after-build-id",
             type=int,
             metavar="ID",
@@ -71,6 +77,7 @@ class ArgumentParser:
         self.skipEnviromentCheck = args.skip_enviroment_check
         self.skipLuaDependenciesCheck = args.skip_lua_dependencies_check
         self.minify = args.minify
+        self.disableBundle = args.disable_bundle
 
     def __repr__(self):
         """便于调试时打印配置"""

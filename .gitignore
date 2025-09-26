@@ -6,3 +6,4 @@ dist/*
 *.pyc
 afterbuild.json
 lua_modules/*
+dump/*
