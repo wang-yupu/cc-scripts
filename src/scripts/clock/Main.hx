@@ -1,6 +1,6 @@
 package clock;
 
-import cc_basics.Side;
+import cc_basics.Enums;
 import cc_basics.peripherals.Redstone.RedstoneMachine;
 import cc_basics.peripherals.Redstone.RedstonePin;
 import cc_basics.Base;

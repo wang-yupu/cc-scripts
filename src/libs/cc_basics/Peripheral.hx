@@ -1,6 +1,6 @@
 package cc_basics;
 
-import cc_basics.Side.getSideName;
+import cc_basics.Enums;
 import haxe.Rest;
 import haxe.extern.EitherType;
 
@@ -13,8 +13,8 @@ private extern class CC_Peripheral {
 class Peripheral {
 	private var id:String;
 
-	public function new(id:EitherType<cc_basics.Side.Side, String>) {
-		if (Std.isOfType(id, cc_basics.Side.Side)) {
+	public function new(id:EitherType<Side, String>) {
+		if (Std.isOfType(id, Side)) {
 			this.id = getSideName(id);
 		} else {
 			this.id = id;

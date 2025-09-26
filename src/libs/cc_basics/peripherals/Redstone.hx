@@ -1,7 +1,7 @@
 package cc_basics.peripherals;
 
 import haxe.extern.EitherType;
-import cc_basics.Side.getSideName;
+import cc_basics.Enums;
 
 @:native("redstone")
 private extern class CC_redstone {
@@ -11,8 +11,8 @@ private extern class CC_redstone {
 }
 
 enum RedstoneMachine {
-	local(side:cc_basics.Side.Side);
-	relay(side:cc_basics.Side.Side, id:String);
+	local(side:Side);
+	relay(side:Side, id:String);
 }
 
 class RedstonePin extends Peripheral {

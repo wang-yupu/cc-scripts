@@ -4,6 +4,7 @@ import haxe.Rest;
 import cc_basics.peripherals.advanced.BlockReader;
 import haxe.extern.EitherType;
 import cc_basics.Base;
+import cc_basics.Enums;
 
 typedef ItemDetail = {
 	var count:Int;
@@ -86,7 +87,7 @@ class GenericInventory extends Peripheral {
 	private var blockReader:BlockReader;
 	private var lastSync:Float;
 
-	public function new(id:EitherType<cc_basics.Side.Side, String>) {
+	public function new(id:EitherType<Side, String>) {
 		super(id);
 		var size:Int = this.getSize();
 		this.slots = new Array<Slot>();

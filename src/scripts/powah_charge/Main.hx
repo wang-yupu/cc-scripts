@@ -1,7 +1,7 @@
 package powah_charge;
 
 import haxe.extern.EitherType;
-import cc_basics.Side;
+import cc_basics.Enums;
 import cc_basics.peripherals.Speaker;
 import cc_basics.peripherals.GenericInventory;
 import cc_basics.Base;

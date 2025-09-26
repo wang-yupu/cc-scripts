@@ -1,7 +1,7 @@
 package example;
 
 import cc_basics.peripherals.Redstone.RedstonePin;
-import cc_basics.Side;
+import cc_basics.Enums;
 import cc_basics.Base;
 import cc_basics.peripherals.GenericInventory;
 
