@@ -121,10 +121,19 @@ class BuildStep:
 
     def _processSteps(self):
         self._steps = []
+        haxeGenericArgs = [
+            "-cp", "src/scripts",
+            "-cp", "src/libs",
+            '--lua', (ReplaceTo.sthInBuildBase, "haxe.lua"),
+            '-D', 'lua-vanilla',
+            "-dce", 'full',
+            "-D", 'no-traces',
+            "--no-traces"
+        ]
         if self._meta.enableFMT:
-            self._steps.append((["haxe", "-cp", 'src/scripts', '-cp', 'src/libs', '--lua', (ReplaceTo.sthInBuildBase, "haxe.lua"), '-D', 'lua-vanilla', '-dce', 'full', '-main', f'fmt.FMTMain', '-D', f'fmtmain={self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
+            self._steps.append((["haxe", *haxeGenericArgs, '-main', f'fmt.FMTMain', '-D', f'fmtmain={self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
         else:
-            self._steps.append((["haxe", "-cp", 'src/scripts', '-cp', 'src/libs', '--lua', (ReplaceTo.sthInBuildBase, "haxe.lua"), '-D', 'lua-vanilla', '-dce', 'full', '-main', f'{self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
+            self._steps.append((["haxe", *haxeGenericArgs, '-main', f'{self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
         if self._doBundle:
             self._steps.append((["echo", "d"], "捆绑多个Lua文件", "haxe.lua"))
         if self._doMinify:
