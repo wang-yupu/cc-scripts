@@ -1,9 +1,10 @@
 package cc_basics.peripherals;
 
+import cc_basics.Enums;
 import haxe.extern.EitherType;
 
 class Speaker extends Peripheral {
-	public function new(id:EitherType<cc_basics.Side.Side, String>) {
+	public function new(id:EitherType<Side, String>) {
 		super(id);
 	}
 
