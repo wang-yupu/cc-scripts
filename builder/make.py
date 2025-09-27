@@ -55,7 +55,9 @@ class BuildStep:
             self._processSteps()
             self._runCommands()
             self._doFinal()
-        except:
+        except Exception as error:
+            logging.error(f"构建出现内部错误: {error}")
+            self.state = BuildStatus.Failed
             return
 
     _script: str
@@ -127,15 +129,13 @@ class BuildStep:
             '--lua', (ReplaceTo.sthInBuildBase, "haxe.lua"),
             '-D', 'lua-vanilla',
             "-dce", 'full',
-            "-D", 'no-traces',
-            "--no-traces"
         ]
         if self._meta.enableFMT:
             self._steps.append((["haxe", *haxeGenericArgs, '-main', f'fmt.FMTMain', '-D', f'fmtmain={self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
         else:
             self._steps.append((["haxe", *haxeGenericArgs, '-main', f'{self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
         if self._doBundle:
-            self._steps.append((["echo", "d"], "捆绑多个Lua文件", "haxe.lua"))
+            self._steps.append((["luabundler", "bundle", ReplaceTo.current, "-o", (ReplaceTo.sthInBuildBase, "bundled.lua"), "-p", "src/native"], "捆绑多个Lua文件", "bundled.lua"))
         if self._doMinify:
             self._steps.append((["luasrcdiet", ReplaceTo.current, '-o', (ReplaceTo.sthInBuildBase, "minify.lua"), "--opt-locals", "--opt-whitespace", '--opt-eols'], "简化Lua文件", 'minify.lua'),)
 
@@ -184,6 +184,7 @@ class BuildStep:
             current = step[2]
 
         self._makedFileName = current
+        logging.info(f"构建流程结束，输出文件: {self._makedFileName}")
 
     def _doFinal(self):
         finalFile = (self._buildBase/self._makedFileName)
