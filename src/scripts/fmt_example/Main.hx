@@ -2,6 +2,7 @@ package fmt_example;
 
 import cc_basics.Base;
 import fmt.Manager;
+import fmt.EventHandler;
 
 class Main {
 	private static var variable:Int = 0;
@@ -23,10 +24,20 @@ class Main {
 		ThreadManager.add(task1);
 		ThreadManager.add(task2);
 		ThreadManager.start();
+
+		Base.print("Registering events: key_up, mouse_click, mouse_up, mouse_drag, mouse_scroll with fmt");
+		new EventHandler(function(event:String, ...v) {
+			Base.print("Event ", event, " fired :: ", v);
+		}, "key_up", "mouse_click", "mouse_up", "mouse_drag", "mouse_scroll");
+
+		EventHandler.registerAll();
+
 		while (true) {
-			Base.print("Main - doing something - ", Base.clock(), " - ", variable);
 			Base.sleep(1);
 			variable++;
+			if (Base.clock() < 8) {
+				Base.print("Main - doing something - ", Base.clock(), " - ", variable);
+			}
 		}
 	}
 }

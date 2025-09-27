@@ -12,7 +12,7 @@ private extern class CC_globals {
 private extern class CC_os {
 	static function clock():Float;
 	static function time(typ:String = "ingame"):Float;
-	static function pullEvent(eventFilter:String = null):Dynamic;
+	static function pullEvent(eventFilter:String = null):Array<Dynamic>;
 	static function queueEvent(name:String, ...args:Dynamic):Void;
 }
 
@@ -41,11 +41,16 @@ class Base {
 		return CC_os.time(typ);
 	}
 
-	public inline static function pullEvent(eventFilter:String = null) {
-		return CC_os.pullEvent(eventFilter);
+	public inline static function pullEvent(?eventFilter:String):Array<Dynamic> {
+		var r = untyped __lua__("{ {0} }", CC_os.pullEvent(eventFilter));
+		var v = [];
+		for (key in Reflect.fields(r)) {
+			v.push(Reflect.field(r, key));
+		}
+		return v;
 	}
 
-	public inline static function queueEvent(name:String, ...args:Dynamic) {
+	public inline static function queueEvent(name:String, ...args:Dynamic):Void {
 		CC_os.queueEvent(name, ...args);
 	}
 }
