@@ -134,3 +134,7 @@ enum Keys {
 function resolveKey(v:Int):Keys {
 	return Keys.createByName(CC_keys.getName(v));
 }
+
+var CTRLS:Array<Keys> = [Keys.leftCtrl, Keys.rightCtrl];
+var ALTS:Array<Keys> = [Keys.leftAlt, Keys.rightAlt];
+var SHIFTS:Array<Keys> = [Keys.leftShift, Keys.rightShift];

@@ -1,5 +1,8 @@
 package sgui.widgets;
 
+import cc_basics.Logger;
+import cc_basics.Enums.revertColor;
+import sgui.events.Events.KeyEvent;
 import cc_basics.Enums.Color;
 import sgui.core.FrameBuffer;
 import sgui.core.Keys;
@@ -23,9 +26,13 @@ class Input extends Widget {
 	private var viewOffset:Int = 0;
 	private var focused:Bool = false;
 
+	private var selectStart:Int;
+	private var selectEnd:Int;
+
 	public function new(width:Int = 12) {
 		super(width, 1);
 		buffer = "";
+		this.clearSelect();
 	}
 
 	private function get_text():String {
@@ -73,6 +80,7 @@ class Input extends Widget {
 			drawColor = placeholderColor;
 		}
 		fbuf.fillRect(gx, gy, width, height, " ", drawColor, background);
+
 		var visible = content;
 		if (viewOffset > 0) {
 			visible = content.substr(viewOffset);
@@ -81,6 +89,13 @@ class Input extends Widget {
 			visible = visible.substr(0, width);
 		}
 		fbuf.writeText(gx, gy, visible, drawColor, background);
+		if (this.selectEnd != 0) {
+			var fgr = revertColor[drawColor];
+			var bgr = revertColor[this.background];
+			for (x in this.selectStart...this.selectEnd) {
+				fbuf.setCell(gx + x, gy, visible.charAt(x), fgr, bgr);
+			}
+		}
 		if (focused && width > 0) {
 			var caretX = cursorPos - viewOffset;
 			if (caretX < 0) {
@@ -88,7 +103,7 @@ class Input extends Widget {
 			} else if (caretX >= width) {
 				caretX = width - 1;
 			}
-			// fbuf.setCell(gx + caretX, gy, "_", cursorColor, background);
+
 			fbuf.setCursorPosition(gx + caretX, gy);
 			fbuf.setCursorBlink(true);
 		} else {
@@ -97,37 +112,29 @@ class Input extends Widget {
 	}
 
 	override public function handleCharInput(ch:String):Bool {
-		if (!focused) {
-			return false;
-		}
-		if (ch == null || ch.length == 0) {
-			return false;
-		}
-		if (buffer.length >= maxLength) {
-			return false;
-		}
-		var left = buffer.substr(0, cursorPos);
-		var right = buffer.substr(cursorPos);
-		buffer = left + ch + right;
-		cursorPos += ch.length;
-		ensureCursorVisible();
-		requestRender();
-		if (onChange != null) {
-			onChange(buffer);
-		}
-		return true;
+		return this.handlePaste(ch);
 	}
 
-	override public function handlePaste(content:String):Bool {
+	override public inline function handlePaste(content:String):Bool {
 		if (!focused) {
 			return false;
 		}
 		if (content == null || content.length == 0) {
 			return false;
 		}
+		var lastSelectStart = null;
+		if (this.selectEnd != 0) {
+			var left = buffer.substr(0, this.selectStart);
+			var right = buffer.substr(this.selectEnd);
+			this.buffer = left + right;
+			lastSelectStart = this.selectStart;
+			this.clearSelect();
+		}
+
 		if (buffer.length >= maxLength) {
 			return false;
 		}
+
 		var spaceAvailable = maxLength - buffer.length;
 		var left = buffer.substr(0, cursorPos);
 		var right = buffer.substr(cursorPos);
@@ -139,71 +146,157 @@ class Input extends Widget {
 		if (onChange != null) {
 			onChange(buffer);
 		}
+		if (lastSelectStart != null) {
+			this.cursorPos = lastSelectStart + 1;
+		}
 		return true;
 	}
 
-	override public function handleKeyInput(keyCode:Int):Bool {
+	override public inline function handleKeyInput(event:KeyEvent):Bool {
 		if (!focused) {
 			return false;
 		}
 
-		var key = resolveKey(keyCode);
+		for (key in event.keys) {
+			switch (key) {
+				case Keys.backspace:
+					if (this.selectEnd == 0 && cursorPos > 0 && buffer.length > 0) {
+						buffer = buffer.substr(0, cursorPos - 1) + buffer.substr(cursorPos);
+						cursorPos--;
+						if (cursorPos < 0) {
+							cursorPos = 0;
+						}
+						ensureCursorVisible();
+						requestRender();
+						if (onChange != null) {
+							onChange(buffer);
+						}
+					} else {
+						if (this.selectEnd != 0) {
+							var left = buffer.substr(0, this.selectStart);
+							var right = buffer.substr(this.selectEnd);
+							this.buffer = left + right;
+							this.cursorPos = this.selectStart;
+							this.clearSelect();
+							ensureCursorVisible();
+							requestRender();
+							if (onChange != null) {
+								onChange(buffer);
+							}
+						}
+					}
+					return true;
+				case Keys.delete:
+					if (this.selectEnd == 0 && cursorPos < buffer.length && buffer.length > 0) {
+						buffer = buffer.substr(0, cursorPos) + buffer.substr(cursorPos + 1);
+						ensureCursorVisible();
+						requestRender();
+						if (onChange != null) {
+							onChange(buffer);
+						}
+					} else {
+						if (this.selectEnd != 0) {
+							var left = buffer.substr(0, this.selectStart);
+							var right = buffer.substr(this.selectEnd);
+							this.buffer = left + right;
+							this.cursorPos = this.selectStart;
+							this.clearSelect();
+							ensureCursorVisible();
+							requestRender();
+							if (onChange != null) {
+								onChange(buffer);
+							}
+						}
+					}
+					return true;
+				case Keys.left:
+					if (cursorPos > 0) {
+						var old = cursorPos;
+						cursorPos--;
+						if (event.shift) {
+							if (selectStart == selectEnd) {
+								selectStart = cursorPos;
+								selectEnd = old;
+							} else if (old == selectEnd) {
+								if (cursorPos >= selectStart) {
+									selectEnd = cursorPos;
+								} else {
+									selectEnd = selectStart;
+									selectStart = cursorPos;
+								}
+							} else {
+								selectStart = cursorPos;
+							}
+							if (selectStart > selectEnd) {
+								var t = selectStart;
+								selectStart = selectEnd;
+								selectEnd = t;
+							}
+						} else {
+							selectStart = selectEnd = cursorPos;
+						}
 
-		switch (key) {
-			case Keys.backspace:
-				if (cursorPos > 0 && buffer.length > 0) {
-					buffer = buffer.substr(0, cursorPos - 1) + buffer.substr(cursorPos);
-					cursorPos--;
-					if (cursorPos < 0) {
-						cursorPos = 0;
+						ensureCursorVisible();
+						requestRender();
 					}
-					ensureCursorVisible();
-					requestRender();
-					if (onChange != null) {
-						onChange(buffer);
+					return true;
+				case Keys.right:
+					if (cursorPos < buffer.length) {
+						var old = cursorPos;
+						cursorPos++;
+
+						if (event.shift) {
+							if (selectStart == selectEnd) {
+								selectStart = old;
+								selectEnd = cursorPos;
+							} else if (old == selectStart) {
+								if (cursorPos <= selectEnd) {
+									selectStart = cursorPos;
+								} else {
+									selectStart = selectEnd;
+									selectEnd = cursorPos;
+								}
+							} else {
+								selectEnd = cursorPos;
+							}
+							if (selectStart > selectEnd) {
+								var t = selectStart;
+								selectStart = selectEnd;
+								selectEnd = t;
+							}
+						} else {
+							selectStart = selectEnd = cursorPos;
+						}
+
+						ensureCursorVisible();
+						requestRender();
 					}
-				}
-				return true;
-			case Keys.delete:
-				if (cursorPos < buffer.length && buffer.length > 0) {
-					buffer = buffer.substr(0, cursorPos) + buffer.substr(cursorPos + 1);
+					return true;
+				case Keys.home:
+					cursorPos = 0;
+					this.clearSelect();
 					ensureCursorVisible();
 					requestRender();
-					if (onChange != null) {
-						onChange(buffer);
+					return true;
+				case Keys.end:
+					cursorPos = buffer.length;
+					this.clearSelect();
+					ensureCursorVisible();
+					requestRender();
+					return true;
+				case Keys.enter:
+					if (onSubmit != null) {
+						onSubmit(buffer);
 					}
-				}
-				return true;
-			case Keys.left:
-				if (cursorPos > 0) {
-					cursorPos--;
-					ensureCursorVisible();
-					requestRender();
-				}
-				return true;
-			case Keys.right:
-				if (cursorPos < buffer.length) {
-					cursorPos++;
-					ensureCursorVisible();
-					requestRender();
-				}
-				return true;
-			case Keys.home:
-				cursorPos = 0;
-				ensureCursorVisible();
-				requestRender();
-				return true;
-			case Keys.end:
-				cursorPos = buffer.length;
-				ensureCursorVisible();
-				requestRender();
-				return true;
-			case Keys.enter:
-				if (onSubmit != null) {
-					onSubmit(buffer);
-				}
-				return true;
-			case _:
+					this.clearSelect();
+					return true;
+				case Keys.a:
+					if (event.ctrl) {
+						this.selectStart = 0;
+						this.selectEnd = this.buffer.length;
+					}
+				case _:
+			}
 		}
 		return false;
 	}
@@ -220,5 +313,10 @@ class Input extends Widget {
 		if (viewOffset < 0) {
 			viewOffset = 0;
 		}
+	}
+
+	private function clearSelect() {
+		this.selectStart = 0;
+		this.selectEnd = 0;
 	}
 }

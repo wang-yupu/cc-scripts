@@ -14,9 +14,9 @@ import sgui.SGUI;
 
 class Main {
 	public static function main() {
-		var monitor = new Monitor(MonitorTarget.remote(Side.RIGHT));
-		// var logger = new Monitor(MonitorTarget.remote(Side.RIGHT));
-		// Logger.setTarget(LoggerTarget.monitor(logger));
+		var monitor = new Monitor(MonitorTarget.local);
+		var logger = new Monitor(MonitorTarget.remote(Side.RIGHT));
+		Logger.setTarget(LoggerTarget.monitor(logger));
 		var disp = new SGUI(monitor);
 		var root = disp.root;
 

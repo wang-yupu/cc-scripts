@@ -1,5 +1,6 @@
 package sgui.core;
 
+import sgui.events.Events.KeyEvent;
 import sgui.core.FrameBuffer;
 
 typedef Bounds = {
@@ -73,7 +74,7 @@ class Widget {
 		return false;
 	}
 
-	public function handleKeyInput(keyCode:Int):Bool {
+	public function handleKeyInput(keyCode:KeyEvent):Bool {
 		return false;
 	}
 

@@ -100,3 +100,22 @@ function parseCCColor(r:Int):Color {
 	var msb = Std.int(Math.log(r) / Math.log(2));
 	return Color.createByIndex(msb);
 }
+
+final revertColor:Map<Color, Color> = [
+	WHITE => BLACK,
+	ORANGE => BLUE,
+	MAGENTA => LIME,
+	LIGHT_BLUE => RED,
+	YELLOW => PURPLE,
+	LIME => MAGENTA,
+	PINK => GRAY,
+	GRAY => PINK,
+	LIGHT_GRAY => CYAN,
+	CYAN => LIGHT_GRAY,
+	PURPLE => YELLOW,
+	BLUE => ORANGE,
+	BROWN => GREEN,
+	GREEN => BROWN,
+	RED => LIGHT_BLUE,
+	BLACK => WHITE
+];

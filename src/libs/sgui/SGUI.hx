@@ -10,6 +10,7 @@ import Type;
 import sgui.core.Container;
 import sgui.core.FrameBuffer;
 import sgui.core.Widget;
+import sgui.core.Keys;
 import sgui.containers.RootContainer;
 import sgui.events.Events;
 import sgui.widgets.Button;
@@ -36,6 +37,7 @@ class SGUI {
 	private var backgroundInterval:Float = 0.05;
 	private var monitorId:String;
 	private var autoLoopRegistered:Bool = false;
+	private var keyDown:Array<Int> = [];
 
 	public function new(monitor:Monitor) {
 		this.monitor = monitor;
@@ -73,7 +75,7 @@ class SGUI {
 			autoLoopRegistered = true;
 		}
 		if (autoHandler == null) {
-			autoHandler = new EventHandler(onCCEvent, "monitor_touch", "mouse_scroll", "char", "key", "mouse_drag", "mouse_up", "monitor_resize",
+			autoHandler = new EventHandler(onCCEvent, "monitor_touch", "mouse_scroll", "char", "key", "key_up", "mouse_drag", "mouse_up", "monitor_resize",
 				"term_resize", "paste");
 			EventHandler.registerAll();
 		}
@@ -140,13 +142,13 @@ class SGUI {
 		}
 	}
 
-	public function handleKey(keyCode:Int):Void {
-		Logger.debug("[SGUI] handleKey code=", keyCode);
+	public function handleKey(event:KeyEvent):Void {
+		Logger.debug("[SGUI] handleKey code=", event);
 		if (onKeyInput != null) {
-			onKeyInput(keyCode);
+			onKeyInput(event);
 		}
 		if (focused != null) {
-			focused.handleKeyInput(keyCode);
+			focused.handleKeyInput(event);
 		}
 	}
 
@@ -193,8 +195,18 @@ class SGUI {
 					handleChar(Std.string(event[1]));
 				}
 			case "key":
+				if (event.length >= 3) {
+					if (!this.keyDown.contains(event[1])) {
+						this.keyDown.push(event[1]);
+					}
+					if (event[2]) {
+						this.triggerKeyEvents();
+					}
+				}
+			case "key_up":
 				if (event.length >= 2) {
-					handleKey(Std.int(event[1]));
+					this.triggerKeyEvents();
+					this.keyDown.remove(event[1]);
 				}
 			case "monitor_resize":
 				if (event.length >= 2 && matchesMonitor(event[1])) {
@@ -210,6 +222,46 @@ class SGUI {
 				}
 			default:
 		}
+	}
+
+	private final MODIFIER_MAP:Map<Keys, String> = {
+		var m = new Map<Keys, String>();
+		for (k in CTRLS)
+			m.set(k, "ctrl");
+		for (k in ALTS)
+			m.set(k, "alt");
+		for (k in SHIFTS)
+			m.set(k, "shift");
+		m;
+	}
+
+	private inline function triggerKeyEvents() {
+		var e:KeyEvent = {
+			ctrl: false,
+			alt: false,
+			shift: false,
+			keys: []
+		};
+		for (k in this.keyDown) {
+			var kr = resolveKey(k);
+			var mod = MODIFIER_MAP.get(kr);
+
+			if (mod != null) {
+				switch (mod) {
+					case "ctrl":
+						e.ctrl = true;
+					case "alt":
+						e.alt = true;
+					case "shift":
+						e.shift = true;
+				}
+			} else {
+				e.keys.push(kr);
+			}
+		}
+		Logger.debug(e);
+
+		this.handleKey(e);
 	}
 
 	public function getFocused():Widget {
