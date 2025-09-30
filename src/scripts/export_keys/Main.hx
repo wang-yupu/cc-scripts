@@ -18,8 +18,9 @@ class Main {
 		Base.print("Starting...");
 		var file = CC_io.open("result", "w+");
 		var a;
-		for (i in 0...1024) {
-			a = CC_keys_api.getName(i);
+		for (i in 0...256) {
+			// a = CC_keys_api.getName(i);
+			a = String.fromCharCode(i);
 			if (a != null) {
 				Base.print(i, " - ", a);
 				file.write(a + "\n");

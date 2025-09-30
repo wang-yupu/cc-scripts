@@ -23,13 +23,15 @@ class VerticalContainer extends Container {
 	private var knobHeight:Int = 1;
 	private var scrollBarHighlightTime:Int = 0;
 
-	public function new(width:Int = 0, height:Int = 0, scrollable:Bool = false) {
+	public function new(width:Null<Int> = null, height:Null<Int> = 1, scrollable:Bool = false) {
 		super(width, height);
 		this.scrollable = scrollable;
 	}
 
 	override inline public function layout():Void {
-		var availableWidth = width;
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
+		var availableWidth = actualWidth;
 		if (scrollable) {
 			availableWidth -= scrollBarWidth;
 			if (availableWidth < 0) {
@@ -44,21 +46,21 @@ class VerticalContainer extends Container {
 				continue;
 			}
 			child.x = 0;
-			if (child.width != availableWidth) {
+			if (child.width == null || child.getActualWidth() != availableWidth) {
 				child.width = availableWidth;
 			}
 			child.y = cursor;
 			child.layout();
 			child.markLaidOut();
-			cursor += child.height + spacing;
+			cursor += child.getActualHeight() + spacing;
 			lastVisible = child;
 		}
 		if (lastVisible != null) {
 			cursor -= spacing;
 		}
 		contentHeight = cursor + scrollOffset;
-		if (contentHeight < height) {
-			contentHeight = height;
+		if (contentHeight < actualHeight) {
+			contentHeight = actualHeight;
 		}
 		computeKnobHeight();
 		markLaidOut();
@@ -70,14 +72,16 @@ class VerticalContainer extends Container {
 			return;
 		}
 		this.hasScrollBar = true;
-		var barX = getGlobalX() + width - scrollBarWidth;
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
+		var barX = getGlobalX() + actualWidth - scrollBarWidth;
 		var barY = getGlobalY();
 		var sfg = this.scrollBarForeground;
 		if (this.scrollBarHighlightTime != 0) {
 			sfg = this.scrollBarActiveForeground;
 			this.scrollBarHighlightTime--;
 		}
-		fbuf.fillRect(barX, barY, scrollBarWidth, height, " ", this.scrollBarBackground, this.scrollBarBackground);
+		fbuf.fillRect(barX, barY, scrollBarWidth, actualHeight, " ", this.scrollBarBackground, this.scrollBarBackground);
 		var knobTop = computeKnobTop();
 		fbuf.fillRect(barX, barY + knobTop, scrollBarWidth, knobHeight, " ", sfg, sfg);
 	}
@@ -92,9 +96,11 @@ class VerticalContainer extends Container {
 
 	override public function handleRelease(localX:Int, localY:Int):Bool {
 		if (this.hasScrollBar && this.scrollable) {
-			if (localX + 1 == this.width) {
-				var perctange = localY / (this.height - 1) * 1.5;
-				this.setScrollOffset(Math.ceil(perctange * this.height));
+			var actualWidth = getActualWidth();
+			var actualHeight = getActualHeight();
+			if (localX + 1 == actualWidth) {
+				var perctange = localY / (actualHeight - 1) * 1.5;
+				this.setScrollOffset(Math.ceil(perctange * actualHeight));
 				this.scrollBarHighlightTime = 5;
 
 				return true;
@@ -106,7 +112,8 @@ class VerticalContainer extends Container {
 	}
 
 	public function setScrollOffset(value:Int):Void {
-		var maxScroll = contentHeight - height;
+		var actualHeight = getActualHeight();
+		var maxScroll = contentHeight - actualHeight;
 		if (maxScroll < 0) {
 			maxScroll = 0;
 		}
@@ -124,40 +131,42 @@ class VerticalContainer extends Container {
 	}
 
 	private inline function hasOverflow():Bool {
-		return contentHeight > height;
+		return contentHeight > getActualHeight();
 	}
 
 	private function computeKnobHeight():Void {
+		var actualHeight = getActualHeight();
 		if (!scrollable || !hasOverflow()) {
-			knobHeight = height;
+			knobHeight = actualHeight;
 			return;
 		}
-		var maxScroll = contentHeight - height;
+		var maxScroll = contentHeight - actualHeight;
 		if (maxScroll <= 0) {
-			knobHeight = height;
+			knobHeight = actualHeight;
 			return;
 		}
-		var trackRange = height;
-		var ratio = height / contentHeight;
+		var trackRange = actualHeight;
+		var ratio = actualHeight / contentHeight;
 		var proposed = Std.int(Math.round(ratio * trackRange));
 		if (proposed < 1) {
 			proposed = 1;
 		}
-		if (proposed > height) {
-			proposed = height;
+		if (proposed > actualHeight) {
+			proposed = actualHeight;
 		}
 		knobHeight = proposed;
 	}
 
 	private function computeKnobTop():Int {
+		var actualHeight = getActualHeight();
 		if (!scrollable || !hasOverflow()) {
 			return 0;
 		}
-		var trackRange = height - knobHeight;
+		var trackRange = actualHeight - knobHeight;
 		if (trackRange <= 0) {
 			return 0;
 		}
-		var maxScroll = contentHeight - height;
+		var maxScroll = contentHeight - actualHeight;
 		if (maxScroll <= 0) {
 			return 0;
 		}

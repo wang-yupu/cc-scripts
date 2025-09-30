@@ -27,7 +27,7 @@ class SGUI {
 	public var onResize:ResizeHandler;
 	public var onPaste:PasteHandler;
 
-	private var framebuffer:FrameBuffer;
+	private var fbuf:FrameBuffer;
 	private var buttonGrid:Array<Array<Button>>;
 	private var focused:Widget;
 	private var monitorWidth:Int;
@@ -45,7 +45,7 @@ class SGUI {
 		var dims = readMonitorSize();
 		monitorWidth = dims.width;
 		monitorHeight = dims.height;
-		framebuffer = new FrameBuffer(monitorWidth, monitorHeight);
+		fbuf = new FrameBuffer(monitorWidth, monitorHeight);
 		root = new RootContainer(monitorWidth, monitorHeight);
 		buttonGrid = [];
 		ensureButtonGrid();
@@ -62,9 +62,9 @@ class SGUI {
 			Logger.debug("[SGUI] update layout");
 			root.layout();
 		}
-		framebuffer.clear(Color.WHITE, root.background, " ");
-		root.render(framebuffer);
-		framebuffer.syncToMonitor(monitor);
+		fbuf.clear(Color.WHITE, root.background, " ");
+		root.render(fbuf);
+		fbuf.syncToMonitor(monitor);
 		rebuildButtonLookup();
 	}
 
@@ -115,6 +115,7 @@ class SGUI {
 		} else if (!Std.isOfType(target, Container)) {
 			setFocus(null);
 		}
+		fbuf.setCursorBlink(false);
 		dispatchRelease(target, x, y);
 	}
 
@@ -390,7 +391,7 @@ class SGUI {
 		Logger.info("[SGUI] monitor size updated to ", dims.width, "x", dims.height);
 		monitorWidth = dims.width;
 		monitorHeight = dims.height;
-		framebuffer.resize(monitorWidth, monitorHeight);
+		fbuf.resize(monitorWidth, monitorHeight);
 		root.resize(monitorWidth, monitorHeight);
 		rebuildButtonLookup();
 		if (onResize != null) {

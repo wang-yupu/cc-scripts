@@ -7,20 +7,21 @@ class HorizontalContainer extends Container {
 	public var spacing:Int = 0;
 	public var alignMiddle:Bool = false;
 
-	public function new(width:Int = 0, height:Int = 0) {
+	public function new(width:Null<Int> = null, height:Null<Int> = 1) {
 		super(width, height);
 	}
 
 	override public function layout():Void {
 		var cursor = 0;
-		var availableHeight = height;
+		var availableHeight = getActualHeight();
 		for (child in children) {
 			if (!child.visible) {
 				continue;
 			}
 			child.x = cursor;
 			if (alignMiddle) {
-				var offset = Std.int((availableHeight - child.height) / 2);
+				var actualChildHeight = child.getActualHeight();
+				var offset = Std.int((availableHeight - actualChildHeight) / 2);
 				if (offset < 0) {
 					offset = 0;
 				}
@@ -28,12 +29,12 @@ class HorizontalContainer extends Container {
 			} else {
 				child.y = 0;
 			}
-			if (child.height != availableHeight && !alignMiddle) {
+			if (child.height == null || (child.getActualHeight() != availableHeight && !alignMiddle)) {
 				child.height = availableHeight;
 			}
 			child.layout();
 			child.markLaidOut();
-			cursor += child.width + spacing;
+			cursor += child.getActualWidth() + spacing;
 		}
 		markLaidOut();
 	}

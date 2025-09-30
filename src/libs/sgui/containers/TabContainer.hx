@@ -21,7 +21,7 @@ class TabContainer extends Container {
 	private var tabs:Array<Tab> = [];
 	private var activeIndex:Int = -1;
 
-	public function new(width:Int = 0, height:Int = 0) {
+	public function new(width:Null<Int> = null, height:Null<Int> = 1) {
 		super(width, height);
 	}
 
@@ -73,16 +73,22 @@ class TabContainer extends Container {
 	}
 
 	override public function layout():Void {
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
 		var areaY = headerHeight;
-		var areaHeight = height - headerHeight;
+		var areaHeight = actualHeight - headerHeight;
 		if (areaHeight < 0) {
 			areaHeight = 0;
 		}
 		for (tab in tabs) {
 			tab.content.x = 0;
 			tab.content.y = areaY;
-			tab.content.width = width;
-			tab.content.height = areaHeight;
+			if (tab.content.width == null || tab.content.getActualWidth() != actualWidth) {
+				tab.content.width = actualWidth;
+			}
+			if (tab.content.height == null || tab.content.getActualHeight() != areaHeight) {
+				tab.content.height = areaHeight;
+			}
 			tab.content.layout();
 			tab.content.markLaidOut();
 		}
@@ -92,17 +98,18 @@ class TabContainer extends Container {
 	override public function render(buffer:FrameBuffer):Void {
 		var gx = getGlobalX();
 		var gy = getGlobalY();
+		var actualWidth = getActualWidth();
 		if (activeIndex != -1) {
 			tabs[activeIndex].content.render(buffer);
 		}
 		if (headerHeight > 0) {
-			buffer.fillRect(gx, gy, width, headerHeight, " ", Color.WHITE, headerBackground);
+			buffer.fillRect(gx, gy, actualWidth, headerHeight, " ", Color.WHITE, headerBackground);
 			for (i in 0...tabs.length) {
 				var tab = tabs[i];
-				if (tab.start >= width) {
+				if (tab.start >= actualWidth) {
 					continue;
 				}
-				var available = width - tab.start;
+				var available = actualWidth - tab.start;
 				if (available <= 0) {
 					continue;
 				}

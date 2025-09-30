@@ -1,5 +1,6 @@
 package monitor_example;
 
+import sgui.containers.HorizontalContainer;
 import sgui.containers.TabContainer;
 import sgui.widgets.Switch;
 import sgui.widgets.Label;
@@ -25,9 +26,13 @@ class Main {
 		root.add(mainLayout);
 		var layout1 = new VerticalContainer(root.width, root.height, true);
 		layout1.spacing = 1;
-		mainLayout.addTab("Page 1", layout1);
+		mainLayout.addTab("Some widgets", layout1);
 
 		var layout2 = new VerticalContainer(root.width, root.height, true);
+		mainLayout.addTab("Config demo", layout2);
+
+		var layout3 = new VerticalContainer(root.width, root.height, true);
+		mainLayout.addTab("All the chars", layout3);
 
 		var input = new Input(20);
 		input.placeholder = "Input content";
@@ -42,6 +47,32 @@ class Main {
 		};
 		layout1.add(button);
 
+		for (v in 0...3) {
+			var c = new HorizontalContainer(layout2.width, 1);
+			var i = new Input();
+			i.placeholder = '<Option ${v}>';
+			var l = new Label('Option ${v} :');
+			c.add(l);
+			c.add(i);
+			layout2.add(c);
+		}
+
+		var charCodeInput = new Input();
+		charCodeInput.placeholder = "0";
+		var charDisplay = new Label("");
+		layout3.add(charCodeInput);
+		layout3.add(charDisplay);
+
+		var sbuf = new StringBuf();
+		for (i in 0...8) {
+			for (v in 0...8) {
+				sbuf.add(String.fromCharCode(i * 8 + v));
+			}
+			sbuf.add("\n");
+		}
+		var cdsp = new Label(sbuf.toString(), LabelWidth.auto, WrapMode.Char);
+		layout3.add(cdsp);
+
 		disp.startBackgroundUpdate();
 
 		for (i in 0...20) {
@@ -50,6 +81,13 @@ class Main {
 		}
 
 		while (true) {
+			try {
+				var v = Std.parseInt(charCodeInput.text);
+				if (v != null) {
+					charDisplay.text = String.fromCharCode(v) + String.fromCharCode(8);
+					charCodeInput.placeholder = Std.string(v);
+				}
+			} catch (e:Dynamic) {}
 			Base.sleep0();
 		}
 	}

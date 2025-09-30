@@ -18,10 +18,15 @@ class RootContainer extends Container {
 		if (this.height != height) {
 			this.height = height;
 		}
+		// 强制重新布局以更新所有子控件的尺寸
+		requestLayout();
+		requestRender();
 	}
 
 	override public function render(buffer:FrameBuffer):Void {
-		buffer.fillRect(0, 0, width, height, " ", Color.WHITE, background);
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
+		buffer.fillRect(0, 0, actualWidth, actualHeight, " ", Color.WHITE, background);
 		super.render(buffer);
 	}
 }

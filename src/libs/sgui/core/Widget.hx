@@ -16,14 +16,14 @@ class Widget {
 	public var enabled:Bool = true;
 	public var x(default, set):Int = 0;
 	public var y(default, set):Int = 0;
-	public var width(default, set):Int = 0;
-	public var height(default, set):Int = 0;
+	public var width(default, set):Null<Int> = null;
+	public var height(default, set):Null<Int> = null;
 	public var parent(default, null):Container;
 
 	private var dirtyLayout:Bool = true;
 	private var dirtyRender:Bool = true;
 
-	public function new(width:Int = 0, height:Int = 0) {
+	public function new(width:Null<Int> = null, height:Null<Int> = 1) {
 		this.width = width;
 		this.height = height;
 	}
@@ -36,12 +36,20 @@ class Widget {
 		return (parent != null ? parent.getGlobalY() : 0) + y;
 	}
 
+	public function getActualWidth():Int {
+		return width != null ? width : (parent != null ? parent.getActualWidth() : 0);
+	}
+
+	public function getActualHeight():Int {
+		return height != null ? height : 1;
+	}
+
 	public inline function getBounds():Bounds {
 		return {
 			x: x,
 			y: y,
-			width: width,
-			height: height
+			width: getActualWidth(),
+			height: getActualHeight()
 		};
 	}
 
@@ -49,8 +57,8 @@ class Widget {
 		return {
 			x: getGlobalX(),
 			y: getGlobalY(),
-			width: width,
-			height: height
+			width: getActualWidth(),
+			height: getActualHeight()
 		};
 	}
 
@@ -145,8 +153,8 @@ class Widget {
 		return value;
 	}
 
-	function set_width(value:Int):Int {
-		var newValue = Math.floor(Math.max(0, value));
+	function set_width(value:Null<Int>):Null<Int> {
+		var newValue = value == null ? null : Math.floor(Math.max(0, value));
 		if (newValue != width) {
 			width = newValue;
 			requestLayout();
@@ -154,8 +162,8 @@ class Widget {
 		return newValue;
 	}
 
-	function set_height(value:Int):Int {
-		var newValue = Math.floor(Math.max(0, value));
+	function set_height(value:Null<Int>):Null<Int> {
+		var newValue = value == null ? null : Math.floor(Math.max(1, value));
 		if (newValue != height) {
 			height = newValue;
 			requestLayout();

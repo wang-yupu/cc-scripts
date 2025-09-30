@@ -7,9 +7,17 @@ class Container extends Widget {
 	public var children(default, null):Array<Widget>;
 	public var clipContent:Bool = false;
 
-	public function new(width:Int = 0, height:Int = 0) {
+	public function new(width:Null<Int> = null, height:Null<Int> = 1) {
 		super(width, height);
 		children = [];
+	}
+
+	override public inline function getActualWidth():Int {
+		return width != null ? width : (parent != null ? parent.getActualWidth() : 0);
+	}
+
+	override public inline function getActualHeight():Int {
+		return height != null ? height : (parent != null ? parent.getActualHeight() : 1);
 	}
 
 	public function add(child:Widget):Void {

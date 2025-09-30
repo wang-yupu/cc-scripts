@@ -20,12 +20,12 @@ class Switch extends Widget {
 
 	private var current:Bool;
 
-	public function new(value:Bool = false, width:Int = 6, height:Int = 1) {
+	public function new(value:Bool = false, width:Null<Int> = null, height:Null<Int> = 1) {
 		super(width, height);
-		if (this.width < 4) {
+		if (this.width != null && this.width < 4) {
 			this.width = 4;
 		}
-		if (this.height < 1) {
+		if (this.height != null && this.height < 1) {
 			this.height = 1;
 		}
 		current = value;
@@ -46,14 +46,16 @@ class Switch extends Widget {
 	override public function render(buffer:FrameBuffer):Void {
 		var gx = getGlobalX();
 		var gy = getGlobalY();
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
 		var bg = current ? onColor : offColor;
-		buffer.fillRect(gx, gy, width, height, " ", textColor, bg);
+		buffer.fillRect(gx, gy, actualWidth, actualHeight, " ", textColor, bg);
 		var label = current ? onLabel : offLabel;
-		if (label.length > width - 2) {
-			label = label.substr(0, width - 2);
+		if (label.length > actualWidth - 2) {
+			label = label.substr(0, actualWidth - 2);
 		}
-		var offsetX = gx + Std.int((width - label.length) / 2);
-		var offsetY = gy + Std.int(height / 2);
+		var offsetX = gx + Std.int((actualWidth - label.length) / 2);
+		var offsetY = gy + Std.int(actualHeight / 2);
 		buffer.writeText(offsetX, offsetY, label, textColor, bg);
 	}
 
@@ -61,7 +63,9 @@ class Switch extends Widget {
 		if (!enabled) {
 			return false;
 		}
-		if (localX < 0 || localX >= width || localY < 0 || localY >= height) {
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
+		if (localX < 0 || localX >= actualWidth || localY < 0 || localY >= actualHeight) {
 			return false;
 		}
 		value = !current;

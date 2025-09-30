@@ -36,6 +36,7 @@ class Logger {
 				if (p != null) {
 					p.write(str.toString());
 				}
+				p.setBackgroundColor(Color.BLACK);
 
 			case file:
 				return;
@@ -56,7 +57,7 @@ class Logger {
 
 	public static function warning(...args:Dynamic) {
 		if (level < 31) {
-			log(Color.YELLOW, Color.ORANGE, ...args);
+			log(Color.YELLOW, Color.LIGHT_GRAY, ...args);
 		}
 	}
 

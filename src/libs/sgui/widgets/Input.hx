@@ -29,7 +29,7 @@ class Input extends Widget {
 	private var selectStart:Int;
 	private var selectEnd:Int;
 
-	public function new(width:Int = 12) {
+	public function new(width:Null<Int> = null) {
 		super(width, 1);
 		buffer = "";
 		this.clearSelect();
@@ -73,20 +73,22 @@ class Input extends Widget {
 	override public function render(fbuf:FrameBuffer):Void {
 		var gx = getGlobalX();
 		var gy = getGlobalY();
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
 		var drawColor = foreground;
 		var content = buffer;
 		if (content.length == 0 && !focused && placeholder.length > 0) {
 			content = placeholder;
 			drawColor = placeholderColor;
 		}
-		fbuf.fillRect(gx, gy, width, height, " ", drawColor, background);
+		fbuf.fillRect(gx, gy, actualWidth, actualHeight, " ", drawColor, background);
 
 		var visible = content;
 		if (viewOffset > 0) {
 			visible = content.substr(viewOffset);
 		}
-		if (visible.length > width) {
-			visible = visible.substr(0, width);
+		if (visible.length > actualWidth) {
+			visible = visible.substr(0, actualWidth);
 		}
 		fbuf.writeText(gx, gy, visible, drawColor, background);
 		if (this.selectEnd != 0) {
@@ -96,18 +98,19 @@ class Input extends Widget {
 				fbuf.setCell(gx + x, gy, visible.charAt(x), fgr, bgr);
 			}
 		}
-		if (focused && width > 0) {
+		if (focused && actualWidth > 0) {
 			var caretX = cursorPos - viewOffset;
+
 			if (caretX < 0) {
-				caretX = 0;
-			} else if (caretX >= width) {
-				caretX = width - 1;
+				fbuf.setCursorBlink(false);
+				return;
+			} else if (caretX >= actualWidth) {
+				fbuf.setCursorBlink(false);
+				return;
 			}
 
 			fbuf.setCursorPosition(gx + caretX, gy);
 			fbuf.setCursorBlink(true);
-		} else {
-			fbuf.setCursorBlink(false);
 		}
 	}
 
@@ -306,9 +309,10 @@ class Input extends Widget {
 			viewOffset = cursorPos;
 			return;
 		}
-		var rightEdge = viewOffset + width - 1;
+		var actualWidth = getActualWidth();
+		var rightEdge = viewOffset + actualWidth - 1;
 		if (cursorPos > rightEdge) {
-			viewOffset = cursorPos - width + 1;
+			viewOffset = cursorPos - actualWidth + 1;
 		}
 		if (viewOffset < 0) {
 			viewOffset = 0;

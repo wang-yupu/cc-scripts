@@ -15,15 +15,15 @@ class Button extends Widget {
 	public var border:Color = Color.WHITE;
 	public var onClick:ButtonHandler;
 
-	private var activate:Bool = false;
+	private var activateTime:Int = 0;
 
-	public function new(text:String = "Button", width:Int = 0, height:Int = 1) {
+	public function new(text:String = "Button", width:Null<Int> = null, height:Null<Int> = 1) {
 		super(width, height);
 		this.text = text;
-		if (this.width <= 0) {
+		if (this.width != null && this.width <= 0) {
 			this.width = Math.floor(Math.max(text.length + 2, 4));
 		}
-		if (this.height <= 0) {
+		if (this.height != null && this.height <= 0) {
 			this.height = 3;
 		}
 	}
@@ -35,27 +35,31 @@ class Button extends Widget {
 
 		var gx = getGlobalX();
 		var gy = getGlobalY();
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
 		var rbg = background;
-		if (this.activate) {
+		if (this.activateTime != 0) {
 			rbg = this.activeBackground;
+			this.activateTime--;
 		}
-		fbuf.fillRect(gx, gy, width, height, " ", foreground, rbg);
+		fbuf.fillRect(gx, gy, actualWidth, actualHeight, " ", foreground, rbg);
 		var label = text != null ? text : "";
-		if (label.length > width - 2) {
-			label = label.substr(0, width - 2);
+		if (label.length > actualWidth - 2) {
+			label = label.substr(0, actualWidth - 2);
 		}
-		var offsetX = gx + Std.int((width - label.length) / 2);
-		var offsetY = gy + Std.int(height / 2);
+		var offsetX = gx + Std.int((actualWidth - label.length) / 2);
+		var offsetY = gy + Std.int(actualHeight / 2);
 		fbuf.writeText(offsetX, offsetY, label, foreground, rbg);
-		this.activate = false;
 	}
 
 	override public function handleRelease(localX:Int, localY:Int):Bool {
 		if (!enabled) {
 			return false;
 		}
-		this.activate = true;
-		var inside = localX >= 0 && localX < width && localY >= 0 && localY < height;
+		this.activateTime = 5;
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
+		var inside = localX >= 0 && localX < actualWidth && localY >= 0 && localY < actualHeight;
 		Logger.debug("[Button] release name=", name != null ? name : text, " inside=", inside, " local=", localX, ",", localY);
 		if (!inside) {
 			return false;
