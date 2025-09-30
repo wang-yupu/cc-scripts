@@ -92,6 +92,9 @@ class TabContainer extends Container {
 	override public function render(buffer:FrameBuffer):Void {
 		var gx = getGlobalX();
 		var gy = getGlobalY();
+		if (activeIndex != -1) {
+			tabs[activeIndex].content.render(buffer);
+		}
 		if (headerHeight > 0) {
 			buffer.fillRect(gx, gy, width, headerHeight, " ", Color.WHITE, headerBackground);
 			for (i in 0...tabs.length) {
@@ -111,9 +114,7 @@ class TabContainer extends Container {
 				buffer.writeText(gx + tab.start, gy, label, Color.BLACK, bg);
 			}
 		}
-		if (activeIndex != -1) {
-			tabs[activeIndex].content.render(buffer);
-		}
+
 		markRendered();
 	}
 

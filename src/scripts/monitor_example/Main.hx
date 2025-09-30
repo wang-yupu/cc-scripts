@@ -22,7 +22,7 @@ class Main {
 		var root = disp.root;
 
 		var mainLayout = new TabContainer(root.width, root.height);
-
+		root.add(mainLayout);
 		var layout1 = new VerticalContainer(root.width, root.height, true);
 		layout1.spacing = 1;
 		mainLayout.addTab("Page 1", layout1);
