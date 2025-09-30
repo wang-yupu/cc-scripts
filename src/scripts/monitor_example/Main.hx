@@ -1,5 +1,6 @@
 package monitor_example;
 
+import sgui.widgets.Switch;
 import sgui.widgets.Label;
 import sgui.widgets.Button;
 import sgui.widgets.Input;
@@ -13,9 +14,9 @@ import sgui.SGUI;
 
 class Main {
 	public static function main() {
-		var monitor = new Monitor(MonitorTarget.remote(Side.LEFT));
-		var logger = new Monitor(MonitorTarget.remote(Side.RIGHT));
-		Logger.setTarget(LoggerTarget.monitor(logger));
+		var monitor = new Monitor(MonitorTarget.remote(Side.RIGHT));
+		// var logger = new Monitor(MonitorTarget.remote(Side.RIGHT));
+		// Logger.setTarget(LoggerTarget.monitor(logger));
 		var disp = new SGUI(monitor);
 		var root = disp.root;
 
@@ -26,6 +27,9 @@ class Main {
 		var input = new Input(20);
 		input.placeholder = "Input content";
 		layout.add(input);
+
+		var switchWidget = new Switch();
+		layout.add(switchWidget);
 
 		var button = new Button("Submit");
 		button.onClick = function() {

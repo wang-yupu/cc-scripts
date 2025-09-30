@@ -5,7 +5,7 @@ import cc_basics.Logger;
 import sgui.core.FrameBuffer;
 import sgui.core.Widget;
 
-typedef SwitchHandler = Bool -> Void;
+typedef SwitchHandler = Bool->Void;
 
 class Switch extends Widget {
 	public var onLabel:String = "ON";
@@ -17,9 +17,10 @@ class Switch extends Widget {
 	public var onToggle:SwitchHandler;
 
 	public var value(get, set):Bool;
+
 	private var current:Bool;
 
-	public function new(value:Bool = false, width:Int = 6, height:Int = 3) {
+	public function new(value:Bool = false, width:Int = 6, height:Int = 1) {
 		super(width, height);
 		if (this.width < 4) {
 			this.width = 4;
@@ -47,18 +48,6 @@ class Switch extends Widget {
 		var gy = getGlobalY();
 		var bg = current ? onColor : offColor;
 		buffer.fillRect(gx, gy, width, height, " ", textColor, bg);
-		for (x in 0...width) {
-			buffer.setCell(gx + x, gy, "-", border, bg);
-			buffer.setCell(gx + x, gy + height - 1, "-", border, bg);
-		}
-		for (y in 0...height) {
-			buffer.setCell(gx, gy + y, "|", border, bg);
-			buffer.setCell(gx + width - 1, gy + y, "|", border, bg);
-		}
-		buffer.setCell(gx, gy, "+", border, bg);
-		buffer.setCell(gx + width - 1, gy, "+", border, bg);
-		buffer.setCell(gx, gy + height - 1, "+", border, bg);
-		buffer.setCell(gx + width - 1, gy + height - 1, "+", border, bg);
 		var label = current ? onLabel : offLabel;
 		if (label.length > width - 2) {
 			label = label.substr(0, width - 2);
