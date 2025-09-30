@@ -14,10 +14,11 @@ class EventHandler {
 	private var callback:EventHandlerCallback;
 	private var events:Array<String>;
 	private var deactivated:Bool = false;
+	private var capAll:Bool = false;
 
 	public function new(callback:EventHandlerCallback, ...events:String) {
 		this.callback = callback;
-		this.events = events;
+		this.updateTargetEvents(...events);
 		unregisterdHandlers.push(this);
 	}
 
@@ -28,9 +29,16 @@ class EventHandler {
 			if (this.deactivated) {
 				break;
 			}
-			if (this.events.contains(r[0])) {
+			if (this.events.contains(r[0]) || this.capAll) {
 				this.callback(r.shift(), ...r);
 			}
+		}
+	}
+
+	public function updateTargetEvents(...events:String) {
+		this.events = events;
+		if (this.events.contains("all")) {
+			this.capAll = true;
 		}
 	}
 
@@ -38,7 +46,7 @@ class EventHandler {
 		this.deactivated = true;
 	}
 
-	public static function registerAll() {
+	public inline static function registerAll() {
 		for (handler in unregisterdHandlers) {
 			ThreadManager.add(handler.loop);
 		}

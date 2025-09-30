@@ -66,3 +66,37 @@ function getSideName(side:Side) {
 		case BACK: 'back';
 	}
 }
+
+enum Color {
+	WHITE;
+	ORANGE;
+	MAGENTA;
+	LIGHT_BLUE;
+	YELLOW;
+	LIME;
+	PINK;
+	GRAY;
+	LIGHT_GRAY;
+	CYAN;
+	PURPLE;
+	BLUE;
+	BROWN;
+	GREEN;
+	RED;
+	BLACK;
+}
+
+function asBlitColor(color:Color):String {
+	var v:Int = Type.enumIndex(color);
+	return StringTools.hex(v);
+}
+
+function asCCColor(color:Color):Int {
+	var v:Int = Type.enumIndex(color);
+	return 1 << v;
+}
+
+function parseCCColor(r:Int):Color {
+	var msb = Std.int(Math.log(r) / Math.log(2));
+	return Color.createByIndex(msb);
+}

@@ -20,8 +20,10 @@ class Peripheral {
 			this.id = id;
 		}
 
-		if (!this.isPresent()) {
-			Base.print("Lib Warning [Peripheral]: The peripheral is not exists: ", this.id);
+		if (this.id != null) {
+			if (!this.isPresent()) {
+				Logger.warning("[Lib warning] The peripheral is not exists: ", this.id);
+			}
 		}
 	}
 
@@ -30,8 +32,19 @@ class Peripheral {
 	}
 
 	private inline function call(method:String, args:Rest<Any>):Any {
-		// Base.print(this.id, " :: ", method, " @ ", args);
-		return CC_Peripheral.call(this.id, method, ...args);
+		var r = untyped __lua__("{ {0} }", CC_Peripheral.call(this.id, method, ...args));
+		var v = [];
+		for (key in Reflect.fields(r)) {
+			v.push(Reflect.field(r, key));
+		}
+
+		if (v.length == 0) {
+			return null;
+		} else if (v.length == 1) {
+			return v[0];
+		} else {
+			return v;
+		}
 	}
 
 	public function getID():String {

@@ -67,7 +67,7 @@ class GenericFluidStorage extends Peripheral {
 	private inline function sync():Void {
 		this.lastSync = Base.clock();
 		if (!this.isPresent()) {
-			Base.print("Lib Warning [GenericFluidStorage]: The peripheral is not exists.");
+			Logger.warning("[Lib warning] [GenericFluidStorage] The peripheral is not exists: ", this.id);
 			return;
 		}
 		var raw:Array<RawFluidTank> = this.getRawTanks();

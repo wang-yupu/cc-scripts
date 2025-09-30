@@ -108,7 +108,7 @@ class GenericInventory extends Peripheral {
 	public inline function sync() {
 		this.lastSync = Base.clock();
 		if (!this.isPresent()) {
-			Base.print("Lib Warning [GenericInventory]: The peripheral is not exists.");
+			Logger.warning("[Lib warning] [GenericInventory] The peripheral is not exists: ", this.id);
 			return;
 		}
 		for (i in 0...this.slots.length) {
