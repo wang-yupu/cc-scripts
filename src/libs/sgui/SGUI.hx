@@ -88,7 +88,7 @@ class SGUI {
 		Logger.info("[SGUI] background update stopped");
 	}
 
-	public function handleRelease(x:Int, y:Int):Void {
+	public inline function handleRelease(x:Int, y:Int):Void {
 		Logger.debug("[SGUI] handleRelease input=", x, ",", y);
 		if (!insideDisplay(x, y)) {
 			Logger.debug("[SGUI] release outside display");
@@ -125,7 +125,7 @@ class SGUI {
 		dispatchScroll(target, direction, x, y);
 	}
 
-	public function handleDrag(x:Int, y:Int):Void {
+	public inline function handleDrag(x:Int, y:Int):Void {
 		this.handleRelease(x, y);
 	}
 
@@ -154,7 +154,7 @@ class SGUI {
 		ensureSize(true);
 	}
 
-	public function handleRawEvent(event:Array<Dynamic>):Void {
+	public inline function handleRawEvent(event:Array<Dynamic>):Void {
 		if (event == null || event.length == 0) {
 			return;
 		}
@@ -354,7 +354,7 @@ class SGUI {
 		return {width: width, height: height};
 	}
 
-	private function onCCEvent(event:String, ...args:Dynamic):Void {
+	private inline function onCCEvent(event:String, ...args:Dynamic):Void {
 		var payload:Array<Dynamic> = [event];
 		for (arg in args) {
 			payload.push(arg);

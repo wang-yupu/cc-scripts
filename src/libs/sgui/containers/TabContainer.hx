@@ -117,7 +117,7 @@ class TabContainer extends Container {
 		markRendered();
 	}
 
-	override public function handleTouch(localX:Int, localY:Int):Bool {
+	override public function handleRelease(localX:Int, localY:Int):Bool {
 		if (localY >= headerHeight) {
 			return false;
 		}

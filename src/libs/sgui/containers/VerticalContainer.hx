@@ -28,7 +28,7 @@ class VerticalContainer extends Container {
 		this.scrollable = scrollable;
 	}
 
-	override public function layout():Void {
+	override inline public function layout():Void {
 		var availableWidth = width;
 		if (scrollable) {
 			availableWidth -= scrollBarWidth;
@@ -64,7 +64,7 @@ class VerticalContainer extends Container {
 		markLaidOut();
 	}
 
-	override public function render(fbuf:FrameBuffer):Void {
+	override public inline function render(fbuf:FrameBuffer):Void {
 		super.render(fbuf);
 		if (!scrollable || !hasOverflow()) {
 			return;
