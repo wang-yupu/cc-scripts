@@ -25,8 +25,8 @@ class Switch extends Widget {
 		if (this.width < 4) {
 			this.width = 4;
 		}
-		if (this.height < 3) {
-			this.height = 3;
+		if (this.height < 1) {
+			this.height = 1;
 		}
 		current = value;
 	}

@@ -11,7 +11,7 @@ class FrameBuffer {
 	private var chars:Array<Array<String>>;
 	private var fore:Array<Array<String>>;
 	private var back:Array<Array<String>>;
-	private var cursorBlinking:Bool;
+	private var cursorBlinking:Bool = false;
 	private var cursorPosX:Int = 0;
 	private var cursorPosY:Int = 0;
 

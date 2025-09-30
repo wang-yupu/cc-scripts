@@ -1,5 +1,6 @@
 package monitor_example;
 
+import sgui.containers.TabContainer;
 import sgui.widgets.Switch;
 import sgui.widgets.Label;
 import sgui.widgets.Button;
@@ -20,28 +21,32 @@ class Main {
 		var disp = new SGUI(monitor);
 		var root = disp.root;
 
-		var layout = new VerticalContainer(root.width, root.height, true);
-		layout.spacing = 1;
-		root.add(layout);
+		var mainLayout = new TabContainer(root.width, root.height);
+
+		var layout1 = new VerticalContainer(root.width, root.height, true);
+		layout1.spacing = 1;
+		mainLayout.addTab("Page 1", layout1);
+
+		var layout2 = new VerticalContainer(root.width, root.height, true);
 
 		var input = new Input(20);
 		input.placeholder = "Input content";
-		layout.add(input);
+		layout1.add(input);
 
 		var switchWidget = new Switch();
-		layout.add(switchWidget);
+		layout1.add(switchWidget);
 
 		var button = new Button("Submit");
 		button.onClick = function() {
 			Logger.info("submitted :: ", input.text);
 		};
-		layout.add(button);
+		layout1.add(button);
 
 		disp.startBackgroundUpdate();
 
 		for (i in 0...20) {
 			var l = new Label('hi im ${i}');
-			layout.add(l);
+			layout1.add(l);
 		}
 
 		while (true) {
