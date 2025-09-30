@@ -11,7 +11,7 @@ enum LoggerTarget {
 
 class Logger {
 	private static var target:LoggerTarget = LoggerTarget.local;
-	public static var level:Int;
+	public static var level:Int = 0;
 
 	private static function log(foreground:Color, background:Color, ...args) {
 		var str = new StringBuf();
