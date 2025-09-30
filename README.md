@@ -1,12 +1,15 @@
 
 # wangyupu 的 **CC:Tweaked** 脚本仓库
 
-此仓库存储了我给CC:T写的各种小脚本，其中还包含一个对基本API进行抽象的包，以及一个工具链。
+此仓库存储了我给CC:T写的各种小脚本，以及：对CC API的抽象调用与GUI库和构建工具链。
 
 ## 脚本列表
 
 - `example` 用于演示和驱动开发，不在仓库提供
 - `ae2_spatial_manager` 可视化快速切换多个空间元件
+- `monitor_example` 演示SGUI库
+- `clock` 红石时钟
+- `fmt_example` 假多线程演示
 
 ## 构建脚本
 
