@@ -24,6 +24,7 @@ class SGUI {
 	public var onKeyInput:KeyHandler;
 	public var onCharInput:CharHandler;
 	public var onResize:ResizeHandler;
+	public var onPaste:PasteHandler;
 
 	private var framebuffer:FrameBuffer;
 	private var buttonGrid:Array<Array<Button>>;
@@ -149,6 +150,16 @@ class SGUI {
 		}
 	}
 
+	public function handlerPaste(content:String) {
+		Logger.debug("[SGUI] Pasted content: ", content);
+		if (onPaste != null) {
+			onPaste(content);
+		}
+		if (focused != null) {
+			focused.handlePaste(content);
+		}
+	}
+
 	public function handleResize():Void {
 		Logger.info("[SGUI] handleResize triggered");
 		ensureSize(true);
@@ -192,6 +203,10 @@ class SGUI {
 			case "term_resize":
 				if (monitorId == null) {
 					handleResize();
+				}
+			case "paste":
+				if (event.length >= 2) {
+					handlerPaste(event[1]);
 				}
 			default:
 		}

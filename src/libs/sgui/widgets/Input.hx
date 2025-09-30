@@ -118,6 +118,30 @@ class Input extends Widget {
 		return true;
 	}
 
+	override public function handlePaste(content:String):Bool {
+		if (!focused) {
+			return false;
+		}
+		if (content == null || content.length == 0) {
+			return false;
+		}
+		if (buffer.length >= maxLength) {
+			return false;
+		}
+		var spaceAvailable = maxLength - buffer.length;
+		var left = buffer.substr(0, cursorPos);
+		var right = buffer.substr(cursorPos);
+		content = content.substr(0, spaceAvailable);
+		buffer = left + content + right;
+		cursorPos += content.length;
+		ensureCursorVisible();
+		requestRender();
+		if (onChange != null) {
+			onChange(buffer);
+		}
+		return true;
+	}
+
 	override public function handleKeyInput(keyCode:Int):Bool {
 		if (!focused) {
 			return false;

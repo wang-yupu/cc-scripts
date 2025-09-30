@@ -81,6 +81,10 @@ class Widget {
 		return false;
 	}
 
+	public function handlePaste(content:String):Bool {
+		return false;
+	}
+
 	public function onFocus():Void {}
 
 	public function onBlur():Void {}
