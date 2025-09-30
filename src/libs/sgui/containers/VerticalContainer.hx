@@ -1,5 +1,6 @@
 package sgui.containers;
 
+import sgui.core.UtilChars;
 import cc_basics.Logger;
 import cc_basics.Enums.Color;
 import sgui.core.Container;
@@ -83,7 +84,7 @@ class VerticalContainer extends Container {
 		}
 		fbuf.fillRect(barX, barY, scrollBarWidth, actualHeight, " ", this.scrollBarBackground, this.scrollBarBackground);
 		var knobTop = computeKnobTop();
-		fbuf.fillRect(barX, barY + knobTop, scrollBarWidth, knobHeight, " ", sfg, sfg);
+		fbuf.fillRect(barX, barY + knobTop, scrollBarWidth, knobHeight, String.fromCharCode(UtilChars.SHADE), sfg, this.scrollBarForeground);
 	}
 
 	override public function handleScroll(direction:Int, localX:Int, localY:Int):Bool {

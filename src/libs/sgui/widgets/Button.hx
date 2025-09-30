@@ -56,7 +56,7 @@ class Button extends Widget {
 		if (!enabled) {
 			return false;
 		}
-		this.activateTime = 5;
+		this.activateTime = 1;
 		var actualWidth = getActualWidth();
 		var actualHeight = getActualHeight();
 		var inside = localX >= 0 && localX < actualWidth && localY >= 0 && localY < actualHeight;

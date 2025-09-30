@@ -14,7 +14,6 @@ import sgui.core.Keys;
 import sgui.containers.RootContainer;
 import sgui.events.Events;
 import sgui.widgets.Button;
-import sgui.widgets.Input;
 
 class SGUI {
 	public var monitor(default, null):Monitor;
@@ -26,6 +25,7 @@ class SGUI {
 	public var onCharInput:CharHandler;
 	public var onResize:ResizeHandler;
 	public var onPaste:PasteHandler;
+	public var showFPS:Bool = false;
 
 	private var fbuf:FrameBuffer;
 	private var buttonGrid:Array<Array<Button>>;
@@ -38,6 +38,7 @@ class SGUI {
 	private var monitorId:String;
 	private var autoLoopRegistered:Bool = false;
 	private var keyDown:Array<Int> = [];
+	private var lastTookTime:Float = 0.0;
 
 	public function new(monitor:Monitor) {
 		this.monitor = monitor;
@@ -57,18 +58,26 @@ class SGUI {
 	}
 
 	public function update():Void {
+		var st = Base.clock();
 		ensureSize();
 		if (root.needsLayout()) {
 			Logger.debug("[SGUI] update layout");
 			root.layout();
 		}
+
 		fbuf.clear(Color.WHITE, root.background, " ");
 		root.render(fbuf);
+		if (this.showFPS) {
+			fbuf.writeText(0, 0, '${this.lastTookTime}s', Color.WHITE, Color.CYAN);
+		}
 		fbuf.syncToMonitor(monitor);
 		rebuildButtonLookup();
+		if (this.showFPS) {
+			this.lastTookTime = Base.clock() - st;
+		}
 	}
 
-	public function startBackgroundUpdate(interval:Float = 0.05):Void {
+	public function startBackgroundUpdate(interval:Float = 0):Void {
 		backgroundInterval = interval;
 		if (!autoLoopRegistered) {
 			ThreadManager.add(updateLoop);

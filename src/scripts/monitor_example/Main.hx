@@ -1,5 +1,6 @@
 package monitor_example;
 
+import sgui.widgets.withLabel.InputWithLabel;
 import sgui.containers.HorizontalContainer;
 import sgui.containers.TabContainer;
 import sgui.widgets.Switch;
@@ -47,16 +48,14 @@ class Main {
 		};
 		layout1.add(button);
 
-		for (v in 0...3) {
-			var c = new HorizontalContainer(layout2.width, 1);
-			var i = new Input();
-			i.placeholder = '<Option ${v}>';
-			var l = new Label('Option ${v} :');
-			c.add(l);
-			c.add(i);
-			layout2.add(c);
+		for (v in 0...5) {
+			var w = new InputWithLabel();
+			w.placeholder = '<Option ${v}>';
+			w.labelText = 'Option ${v} :';
+			w.background = Type.createEnumIndex(Color, v + 2);
+			layout2.add(w);
 		}
-
+		layout2.add(new Label("Note: You can paste with Ctrl+V; Selection with Shift+L/R or Ctrl+A", LabelWidth.block, WrapMode.Space));
 		var charCodeInput = new Input();
 		charCodeInput.placeholder = "0";
 		var charDisplay = new Label("");
@@ -79,7 +78,7 @@ class Main {
 			var l = new Label('hi im ${i}');
 			layout1.add(l);
 		}
-
+		disp.showFPS = true;
 		while (true) {
 			try {
 				var v = Std.parseInt(charCodeInput.text);

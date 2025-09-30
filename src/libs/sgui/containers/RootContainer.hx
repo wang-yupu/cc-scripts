@@ -18,7 +18,7 @@ class RootContainer extends Container {
 		if (this.height != height) {
 			this.height = height;
 		}
-		// 强制重新布局以更新所有子控件的尺寸
+
 		requestLayout();
 		requestRender();
 	}
