@@ -1,5 +1,6 @@
 package sgui.containers;
 
+import cc_basics.Logger;
 import cc_basics.Enums.Color;
 import sgui.core.Container;
 import sgui.core.FrameBuffer;
@@ -23,6 +24,14 @@ class TabContainer extends Container {
 
 	public function new(width:Null<Int> = null, height:Null<Int> = null) {
 		super(width, height);
+	}
+
+	override public function getActualHeight():Int {
+		return height != null ? height : (parent != null ? parent.getActualHeight() : 1);
+	}
+
+	override public function getActualWidth():Int {
+		return width != null ? width : (parent != null ? parent.getActualWidth() : 0);
 	}
 
 	public function addTab(title:String, content:Container):Int {

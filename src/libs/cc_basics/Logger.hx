@@ -54,9 +54,11 @@ class Logger {
 	}
 
 	public static function debug(...args:Dynamic) {
+		#if debug
 		if (level < 11) {
 			log(Color.CYAN, Color.BLACK, ...args);
 		}
+		#end
 	}
 
 	public static function warning(...args:Dynamic) {

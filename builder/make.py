@@ -41,13 +41,14 @@ class BuildStep:
     size: int
     finalFileName: str
 
-    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path, minify=True, bundle=True) -> None:
+    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path, minify=True, bundle=True, debugLogs=True) -> None:
         self._scriptDir = scriptDir
         self._script = script
         self._buildDir = buildDir
         self._distDir = distDir
         self._doMinify = minify
         self._doBundle = bundle
+        self._debugLogs = debugLogs
 
         try:
             self._checkBasics()
@@ -72,6 +73,7 @@ class BuildStep:
     _meta: Metadata
     _doBundle: bool
     _doMinify: bool
+    _debugLogs: bool
 
     _makedFileName: str
 
@@ -129,7 +131,10 @@ class BuildStep:
             '--lua', (ReplaceTo.sthInBuildBase, "haxe.lua"),
             '-D', 'lua-vanilla',
             "-dce", 'full',
+
         ]
+        if self._debugLogs:
+            haxeGenericArgs.extend(["-D", "debug"])
         haxeMetaArgs = []
         haxeMetaFields = {
             "version_major": self._meta.version.major,

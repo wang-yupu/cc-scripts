@@ -25,7 +25,7 @@ AFTERBUILD_CONFIG = pathlib.Path("./afterbuild.json")
 
 
 def build() -> tuple[bool, int]:
-    m = make.BuildStep(SCRIPTS_DIR, args.script, BUILD_DIR, DIST_DIR, args.minify, not args.disableBundle)
+    m = make.BuildStep(SCRIPTS_DIR, args.script, BUILD_DIR, DIST_DIR, args.minify, not args.disableBundle, args.debugLogs)
     if m.state == make.BuildStatus.Failed:
         return False, 0
     elif m.state == make.BuildStatus.NoMain:

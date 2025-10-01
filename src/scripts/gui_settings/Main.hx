@@ -24,7 +24,7 @@ class Main {
 		var monitor = new Monitor();
 		var display = new SGUI(monitor);
 
-		var mainLayout = new TabContainer();
+		var mainLayout = new TabContainer(display.root.width, display.root.height);
 		display.root.add(mainLayout);
 
 		var configPageLayout = new VerticalContainer();

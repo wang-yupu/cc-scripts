@@ -15,11 +15,11 @@ class Container extends Widget {
 		children = [];
 	}
 
-	override public inline function getActualWidth():Int {
+	override public function getActualWidth():Int {
 		return width != null ? width : (parent != null ? parent.getActualWidth() : 0);
 	}
 
-	override public inline function getActualHeight():Int {
+	override public function getActualHeight():Int {
 		return height != null ? height : (parent != null ? parent.getActualHeight() : 1);
 	}
 

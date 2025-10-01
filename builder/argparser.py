@@ -49,6 +49,12 @@ class ArgumentParser:
             help="简化生成的代码"
         )
 
+        parser.add_argument(
+            "--debug-logs",
+            action="store_true",
+            help="输出调试级别的日志"
+        )
+
         # 构建模式
         mode_group = parser.add_mutually_exclusive_group()
         mode_group.add_argument(
@@ -78,6 +84,7 @@ class ArgumentParser:
         self.skipLuaDependenciesCheck = args.skip_lua_dependencies_check
         self.minify = args.minify
         self.disableBundle = args.disable_bundle
+        self.debugLogs = args.debug_logs
 
     def __repr__(self):
         """便于调试时打印配置"""
