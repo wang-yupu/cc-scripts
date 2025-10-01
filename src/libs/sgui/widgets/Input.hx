@@ -80,6 +80,11 @@ class Input extends Widget {
 			return false;
 		}
 		onFocus();
+		if (localX < this.buffer.length) {
+			this.cursorPos = localX;
+		} else {
+			this.cursorPos = this.buffer.length;
+		}
 		return true;
 	}
 
