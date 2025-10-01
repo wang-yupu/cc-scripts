@@ -11,12 +11,13 @@ private extern class CC_parallel {
 
 class ThreadManager {
 	private static final startFunctionsEventName:String = "fmt_start_functions";
+	private static final quitEventName:String = "fmt_terminate_program";
 
-	private static var funcQueue:Array<Function>;
+	private static var funcQueue:Array<Function> = null;
 
 	public function new(main:Function) {
 		funcQueue = [];
-		CC_parallel.waitForAny(main, loop);
+		CC_parallel.waitForAny(main, loop, quiter);
 	}
 
 	public static function add(func:Function) {
@@ -33,5 +34,21 @@ class ThreadManager {
 		funcs.push(loop);
 		funcQueue = [];
 		CC_parallel.waitForAll(...funcs);
+	}
+
+	private static function quiter() {
+		Base.pullEvent(quitEventName);
+	}
+
+	public static function quit() {
+		Base.queueEvent(quitEventName);
+	}
+
+	public static function quitSafe() {
+		if (funcQueue == null) {
+			Base.queueEvent("terminate");
+			return;
+		}
+		Base.queueEvent(quitEventName);
 	}
 }

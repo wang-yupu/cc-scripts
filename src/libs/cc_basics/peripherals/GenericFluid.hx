@@ -1,5 +1,6 @@
 package cc_basics.peripherals;
 
+import cc_basics.Enums.Side;
 import haxe.Int32;
 import haxe.Rest;
 import haxe.extern.EitherType;
@@ -52,7 +53,7 @@ private class FluidTank {
 class GenericFluidStorage extends Peripheral {
 	private var tanks:Array<FluidTank>;
 
-	public function new(id:EitherType<cc_basics.Side.Side, String>) {
+	public function new(id:EitherType<Side, String>) {
 		super(id);
 		this.tanks = new Array<FluidTank>();
 		this.sync();

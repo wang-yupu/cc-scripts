@@ -8,6 +8,7 @@ import haxe.extern.EitherType;
 private extern class CC_Peripheral {
 	static function isPresent(id:String):Bool;
 	static function call(id:String, method:String, args:Rest<Any>):Any;
+	static function getType(id:String):String;
 }
 
 class Peripheral {
@@ -29,6 +30,10 @@ class Peripheral {
 
 	public function isPresent():Bool {
 		return CC_Peripheral.isPresent(this.id);
+	}
+
+	public function getType():String {
+		return CC_Peripheral.getType(this.id);
 	}
 
 	private inline function call(method:String, args:Rest<Any>):Any {

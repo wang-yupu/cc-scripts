@@ -14,6 +14,7 @@ private extern class CC_os {
 	static function time(typ:String = "ingame"):Float;
 	static function pullEvent(eventFilter:String = null):Array<Dynamic>;
 	static function queueEvent(name:String, ...args:Dynamic):Void;
+	static function date(fmt:String, time:Int):String;
 }
 
 class Base {
@@ -52,5 +53,9 @@ class Base {
 
 	public inline static function queueEvent(name:String, ...args:Dynamic):Void {
 		CC_os.queueEvent(name, ...args);
+	}
+
+	public static function toReadableTime(time:Int):String {
+		return CC_os.date("%Y/%m/%d %H:%M:%S", time);
 	}
 }

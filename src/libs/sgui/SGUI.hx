@@ -26,6 +26,7 @@ class SGUI {
 	public var onResize:ResizeHandler;
 	public var onPaste:PasteHandler;
 	public var showFPS:Bool = false;
+	public var exitKey:Keys = null;
 
 	private var fbuf:FrameBuffer;
 	private var buttonGrid:Array<Array<Button>>;
@@ -255,7 +256,12 @@ class SGUI {
 		for (k in this.keyDown) {
 			var kr = resolveKey(k);
 			var mod = MODIFIER_MAP.get(kr);
-
+			if (this.exitKey != null) {
+				if (this.exitKey == kr) {
+					this.monitor.clear(Color.BLACK);
+					ThreadManager.quitSafe();
+				}
+			}
 			if (mod != null) {
 				switch (mod) {
 					case "ctrl":

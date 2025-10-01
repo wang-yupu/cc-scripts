@@ -14,6 +14,7 @@ class Button extends Widget {
 	public var activeBackground:Color = Color.BLUE;
 	public var border:Color = Color.WHITE;
 	public var onClick:ButtonHandler;
+	public var align:Float = 0.5;
 
 	private var activateTime:Int = 0;
 
@@ -47,8 +48,8 @@ class Button extends Widget {
 		if (label.length > actualWidth - 2) {
 			label = label.substr(0, actualWidth - 2);
 		}
-		var offsetX = gx + Std.int((actualWidth - label.length) / 2);
-		var offsetY = gy + Std.int(actualHeight / 2);
+		var offsetX = gx + Std.int((actualWidth - label.length) * this.align);
+		var offsetY = gy + Std.int(actualHeight * this.align);
 		fbuf.writeText(offsetX, offsetY, label, foreground, rbg);
 	}
 

@@ -1,5 +1,6 @@
 package gui_settings;
 
+import sgui.core.Keys;
 import gui_settings.FileManager.FileManagerPage;
 import cc_basics.Enums;
 import sgui.containers.VerticalContainer;
@@ -27,10 +28,10 @@ class Main {
 		var mainLayout = new TabContainer(display.root.width, display.root.height);
 		display.root.add(mainLayout);
 
-		var configPageLayout = new VerticalContainer();
-		var autoPageLayout = new VerticalContainer();
-		var fileManagerLayout = new VerticalContainer();
-		var aboutPageLayout = new VerticalContainer();
+		var configPageLayout = new VerticalContainer(display.root.width);
+		var autoPageLayout = new VerticalContainer(display.root.width);
+		var fileManagerLayout = new VerticalContainer(display.root.width);
+		var aboutPageLayout = new VerticalContainer(display.root.width);
 
 		mainLayout.addTab("Config", configPageLayout);
 		mainLayout.addTab("Auto Completion", autoPageLayout);
@@ -39,9 +40,10 @@ class Main {
 		mainLayout.inactiveColor = Color.LIGHT_BLUE;
 
 		var aboutPage = new AboutPage(aboutPageLayout);
-		var fileManagerPage = new FileManagerPage(fileManagerLayout);
+		var fileManagerPage = new FileManagerPage(fileManagerLayout, display);
 
 		display.startBackgroundUpdate();
+		display.exitKey = Keys.f12;
 		while (true) {
 			switch mainLayout.getActiveTabIndex() {
 				case 0:

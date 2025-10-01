@@ -3,3 +3,4 @@
 -cp src/libs
 -cp src/installer
 -D fmtmain=main
+--lua build/fuck.lua
