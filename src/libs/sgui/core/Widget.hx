@@ -1,5 +1,6 @@
 package sgui.core;
 
+import cc_basics.Logger;
 import sgui.events.Events.KeyEvent;
 import sgui.core.FrameBuffer;
 
@@ -104,7 +105,9 @@ class Widget {
 
 	public function hitTest(globalX:Int, globalY:Int):Bool {
 		var bounds = getGlobalBounds();
-		return globalX >= bounds.x && globalX < bounds.x + bounds.width && globalY >= bounds.y && globalY < bounds.y + bounds.height;
+		var result = globalX >= bounds.x && globalX < bounds.x + bounds.width && globalY >= bounds.y && globalY < bounds.y + bounds.height;
+		Logger.debug('[SGUI] hitTest: gx=$globalX, gy=$globalY, bounds=$bounds, result=$result');
+		return result;
 	}
 
 	public function requestLayout():Void {

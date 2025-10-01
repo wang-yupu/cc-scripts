@@ -5,8 +5,6 @@ import sgui.core.Container;
 import sgui.core.FrameBuffer;
 
 class RootContainer extends Container {
-	public var background:Color = Color.BLACK;
-
 	public function new(width:Int, height:Int) {
 		super(width, height);
 	}

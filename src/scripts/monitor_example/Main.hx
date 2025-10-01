@@ -52,7 +52,7 @@ class Main {
 			var w = new InputWithLabel();
 			w.placeholder = '<Option ${v}>';
 			w.labelText = 'Option ${v} :';
-			w.background = Type.createEnumIndex(Color, v + 2);
+			w.backgroundColor = Type.createEnumIndex(Color, v + 2);
 			layout2.add(w);
 		}
 		layout2.add(new Label("Note: You can paste with Ctrl+V; Selection with Shift+L/R or Ctrl+A", LabelWidth.block, WrapMode.Space));

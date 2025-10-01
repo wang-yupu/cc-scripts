@@ -1,0 +1,8 @@
+{
+    "version": "0.0.0",
+    "name": "GUI设置界面",
+    "description": "基于GUI的设置界面",
+    "nameEN": "GUI Settings",
+    "descriptionEN": "Settings UI in GUI",
+    "fmt": true
+}

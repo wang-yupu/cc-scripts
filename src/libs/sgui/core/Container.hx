@@ -1,11 +1,14 @@
 package sgui.core;
 
+import cc_basics.Enums.Color;
 import sgui.core.FrameBuffer;
 import sgui.core.Widget;
+import cc_basics.Logger;
 
 class Container extends Widget {
 	public var children(default, null):Array<Widget>;
 	public var clipContent:Bool = false;
+	public var background:Color = Color.BLACK;
 
 	public function new(width:Null<Int> = null, height:Null<Int> = 1) {
 		super(width, height);
@@ -73,6 +76,13 @@ class Container extends Widget {
 		if (!visible) {
 			return;
 		}
+
+		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
+		if (actualWidth > 0 && actualHeight > 0) {
+			buffer.fillRect(getGlobalX(), getGlobalY(), actualWidth, actualHeight, " ", Color.WHITE, background);
+		}
+
 		for (child in children) {
 			if (!child.visible) {
 				continue;
@@ -84,10 +94,15 @@ class Container extends Widget {
 	}
 
 	public function findLeaf(globalX:Int, globalY:Int):Widget {
+		var mn = Type.getClassName(Type.getClass(this));
+		Logger.debug('[SGUI] :: ${mn} container findLeaf: gx=$globalX, gy=$globalY');
+		Logger.debug('[SGUI] :: ${mn} container bounds: ${getGlobalBounds()}');
 		if (!visible || !hitTest(globalX, globalY)) {
+			Logger.debug('[SGUI] :: ${mn} container findLeaf: Exited at branch 1 - visible=$visible, hitTest=${hitTest(globalX, globalY)}');
 			return null;
 		}
 		var i = children.length - 1;
+		Logger.debug('[SGUI] child count: ${children.length}');
 		while (i >= 0) {
 			var child = children[i];
 			i--;
@@ -96,9 +111,13 @@ class Container extends Widget {
 			}
 			var leaf:Widget = null;
 			if (Std.isOfType(child, Container)) {
+				Logger.debug('[SGUI] :: ${mn} call child: ${Type.getClassName(Type.getClass(child))} at ${child.getGlobalBounds()}');
 				leaf = cast(child, Container).findLeaf(globalX, globalY);
 			} else if (child.hitTest(globalX, globalY)) {
+				Logger.debug('[SGUI] :: ${mn} child hit: ${Type.getClassName(Type.getClass(child))} at ${child.getGlobalBounds()}');
 				leaf = child;
+			} else {
+				Logger.debug('[SGUI] :: ${mn} child miss: ${Type.getClassName(Type.getClass(child))} at ${child.getGlobalBounds()}');
 			}
 			if (leaf != null) {
 				return leaf;

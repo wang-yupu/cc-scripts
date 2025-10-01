@@ -21,7 +21,7 @@ class TabContainer extends Container {
 	private var tabs:Array<Tab> = [];
 	private var activeIndex:Int = -1;
 
-	public function new(width:Null<Int> = null, height:Null<Int> = 1) {
+	public function new(width:Null<Int> = null, height:Null<Int> = null) {
 		super(width, height);
 	}
 
@@ -72,14 +72,28 @@ class TabContainer extends Container {
 		return tabs[activeIndex].content;
 	}
 
+	public function getActiveTabIndex():Int {
+		if (activeIndex == -1) {
+			return null;
+		}
+		return this.activeIndex;
+	}
+
 	override public function layout():Void {
 		var actualWidth = getActualWidth();
 		var actualHeight = getActualHeight();
 		var areaY = headerHeight;
 		var areaHeight = actualHeight - headerHeight;
+
+		if (tabs.length == 1) {
+			areaY = 0;
+			areaHeight = actualHeight;
+		}
+
 		if (areaHeight < 0) {
 			areaHeight = 0;
 		}
+
 		for (tab in tabs) {
 			tab.content.x = 0;
 			tab.content.y = areaY;
@@ -99,10 +113,17 @@ class TabContainer extends Container {
 		var gx = getGlobalX();
 		var gy = getGlobalY();
 		var actualWidth = getActualWidth();
+		var actualHeight = getActualHeight();
+
+		buffer.fillRect(gx, gy, actualWidth, actualHeight, " ", Color.WHITE, background);
+
 		if (activeIndex != -1) {
 			tabs[activeIndex].content.render(buffer);
 		}
-		if (headerHeight > 0) {
+
+		var shouldShowHeader = !(tabs.length == 1 && Std.isOfType(tabs[0].content, Container));
+
+		if (shouldShowHeader && headerHeight > 0) {
 			buffer.fillRect(gx, gy, actualWidth, headerHeight, " ", Color.WHITE, headerBackground);
 			for (i in 0...tabs.length) {
 				var tab = tabs[i];

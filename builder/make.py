@@ -130,6 +130,17 @@ class BuildStep:
             '-D', 'lua-vanilla',
             "-dce", 'full',
         ]
+        haxeMetaArgs = []
+        haxeMetaFields = {
+            "version_major": self._meta.version.major,
+            "version_minor": self._meta.version.minor,
+            "version_patch": self._meta.version.patch
+        }
+
+        for k, v in haxeMetaFields.items():
+            haxeMetaArgs.append("-D")
+            haxeMetaArgs.append(f"{k}={v}")
+        haxeGenericArgs.extend(haxeMetaArgs)
         if self._meta.enableFMT:
             self._steps.append((["haxe", *haxeGenericArgs, '-main', f'fmt.FMTMain', '-D', f'fmtmain={self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
         else:

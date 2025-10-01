@@ -35,6 +35,10 @@ class Input extends Widget {
 		this.clearSelect();
 	}
 
+	override public function getActualWidth():Int {
+		return width != null ? width : (parent != null ? parent.getActualWidth() : 20);
+	}
+
 	private function get_text():String {
 		return buffer;
 	}
@@ -67,7 +71,16 @@ class Input extends Widget {
 
 	override public function onBlur():Void {
 		focused = false;
+		this.clearSelect();
 		requestRender();
+	}
+
+	override public function handleRelease(localX:Int, localY:Int):Bool {
+		if (!enabled || !visible) {
+			return false;
+		}
+		onFocus();
+		return true;
 	}
 
 	override public function render(fbuf:FrameBuffer):Void {

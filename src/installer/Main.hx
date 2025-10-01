@@ -1,1 +1,3 @@
 package installer;
+
+class Main {}

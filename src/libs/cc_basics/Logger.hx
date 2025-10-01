@@ -7,6 +7,7 @@ enum LoggerTarget {
 	local;
 	monitor(p:Monitor);
 	file;
+	none;
 }
 
 class Logger {
@@ -39,6 +40,9 @@ class Logger {
 				p.setBackgroundColor(Color.BLACK);
 
 			case file:
+				return;
+
+			case none:
 				return;
 		}
 	}

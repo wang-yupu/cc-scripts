@@ -27,7 +27,7 @@ class InputWithLabel extends HorizontalContainer {
 	public var onSubmit(get, set):InputHandler;
 
 	public var labelText(get, set):String;
-	public var background(get, set):Color;
+	public var backgroundColor(get, set):Color;
 	public var foreground(get, set):Color;
 
 	public function new(options:InputWithLabelOptions = null) {
@@ -97,6 +97,17 @@ class InputWithLabel extends HorizontalContainer {
 
 	function set_labelText(value:String):String {
 		return label.text = value;
+	}
+
+	function get_backgroundColor():Color {
+		return input.background;
+	}
+
+	function set_backgroundColor(value:Color):Color {
+		input.background = value;
+		label.background = value;
+
+		return value;
 	}
 
 	function get_background():Color {
