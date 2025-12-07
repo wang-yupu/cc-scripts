@@ -1,6 +1,9 @@
 
 # wangyupu 的 **CC:Tweaked** 脚本仓库
 
+> **Warning**
+> 一切都是WIP，任何API随时可能改动
+
 此仓库存储了我给CC:T写的各种小脚本，以及：对CC API的抽象调用与GUI库和构建工具链。
 
 ## 脚本列表
@@ -12,11 +15,12 @@
 - `fmt_example` 假多线程演示
 
 ## 构建脚本
-
+<!--
 > 所有脚本都在`cct-scripts.wangyupu.com`下提供原始版本和安装器版本。
 
 安装器: `https://cct-scripts.wangyupu.com/scripts/<脚本名>/installer.lua`
 `startup.lua`: `https://cct-scripts.wangyupu.com/scripts/<脚本名>/startup.lua`
+-->
 
 ### 安装工具链软件
 
@@ -24,7 +28,7 @@
 
 ##### Arch Linux
 
-`sudo pacman -Syu haxe lua luarocks python node`
+`sudo pacman -Syu haxe lua luarocks python nodejs`
 
 #### 然后你需要做
 
