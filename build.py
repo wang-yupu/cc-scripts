@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/local/python
 # 构建工具
 import logging
 import pathlib

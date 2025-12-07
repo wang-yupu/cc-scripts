@@ -2,6 +2,7 @@ import logging
 import re
 from dataclasses import dataclass
 from functools import total_ordering
+import sys
 
 import builder.subprocessUtil as su
 
@@ -52,11 +53,18 @@ class EnviromentChecker:
 
     @classmethod
     def checkSingle(cls, command: list[str], required: Version) -> tuple[bool, Version | None | str]:
-        proc = su.Subprocess(command)
-        if not proc.executeableExists():
-            return False, None
-        content = proc.read()
-        v = EnviromentChecker.getVersion(content)
+        v:Version | None = None
+        content:str | None = None
+        if command[0].startswith('DO_SPECIAL_CHECK'):
+            if command[0] == "DO_SPECIAL_CHECK_PYTHON":
+                v = Version(*map(int, tuple(sys.version_info)[0:3]))
+                content = str(v)
+        else:
+            proc = su.Subprocess(command)
+            if not proc.executeableExists():
+                return False, None
+            content = proc.read()
+            v = EnviromentChecker.getVersion(content)
         if v is None:
             return True, content
         if v < required:
@@ -71,7 +79,9 @@ class EnviromentChecker:
             (['luarocks', '--version'], Version(3, 12, 0), "LuaRocks"),
             (['haxe', '--version'], Version(4, 3, 0), "Haxe 编译器"),
             (['luabundler', '--version'], Version(1, 2, 0), "LuaBundler"),
-            (['luasrcdiet', '--version'], Version(1, 0, 0), "LuaSrcDiet")
+            (['luasrcdiet', '--version'], Version(1, 0, 0), "LuaSrcDiet"),
+            (['python', '--version'], Version(3, 12, 0), "Python"),
+            (['DO_SPECIAL_CHECK_PYTHON'], Version(3, 12, 0), "Python(Running)")
         ]
 
         failed = False
