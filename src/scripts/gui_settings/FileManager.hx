@@ -113,7 +113,6 @@ class FileManagerPage {
 	}
 
 	private function toParent() {
-		Logger.info("123123");
 		var dir = Path.directory(this.currentPath.toString());
 
 		if (dir == "") {
