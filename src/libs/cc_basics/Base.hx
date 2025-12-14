@@ -26,6 +26,10 @@ class Base {
 		CC_globals.print(str.toString());
 	}
 
+	public static inline function fprint(a:String) {
+		CC_globals.print(a);
+	}
+
 	public static function sleep(time:Float):Void {
 		CC_globals.sleep(time);
 	}

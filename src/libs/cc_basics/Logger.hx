@@ -21,7 +21,7 @@ class Logger {
 		}
 		switch (target) {
 			case local:
-				Base.print(str);
+				Base.fprint(str.toString());
 
 			case monitor(p):
 				p.setForeground(foreground);
