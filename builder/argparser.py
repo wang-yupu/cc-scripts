@@ -55,6 +55,11 @@ class ArgumentParser:
             help="输出调试级别的日志"
         )
 
+        parser.add_argument(
+            "--haxe-compile-server-port",
+            help="Haxe 编译服务器的监听端口，只在Debug下启用。或者设置为任何小于0的值禁用编译服务器"
+        )
+
         # 构建模式
         mode_group = parser.add_mutually_exclusive_group()
         mode_group.add_argument(
@@ -85,6 +90,7 @@ class ArgumentParser:
         self.minify = args.minify
         self.disableBundle = args.disable_bundle
         self.debugLogs = args.debug_logs
+        self.hc_server_port = args.haxe_compile_server_port
 
     def __repr__(self):
         """便于调试时打印配置"""

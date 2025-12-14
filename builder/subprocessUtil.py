@@ -1,4 +1,5 @@
 import subprocess
+import threading
 
 
 class Subprocess:
@@ -32,3 +33,11 @@ class Subprocess:
             return self.process.returncode
         else:
             raise Exception("No process!")
+
+
+class backgroundSubprocess(Subprocess):
+    def __init__(self, command: list[str]) -> None:
+        threading.Thread(target=self.run, args=(command,)).start()
+
+    def run(self, command: list[str]):
+        super().__init__(command)

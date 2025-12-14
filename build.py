@@ -10,6 +10,7 @@ import builder.loggerUtil as loggerUtil
 import builder.luaDependenciesChecker as ldc
 import builder.make as make
 import builder.afterbuildProcessor as abp
+import builder.subprocessUtil as sp
 
 LUA_DEPENDENCIES = [
     "nbt"
@@ -25,7 +26,7 @@ AFTERBUILD_CONFIG = pathlib.Path("./afterbuild.json")
 
 
 def build() -> tuple[bool, int]:
-    m = make.BuildStep(SCRIPTS_DIR, args.script, BUILD_DIR, DIST_DIR, args.minify, not args.disableBundle, args.debugLogs)
+    m = make.BuildStep(SCRIPTS_DIR, args.script, BUILD_DIR, DIST_DIR, args.minify, not args.disableBundle, args.debugLogs, args.hc_server_port)
     if m.state == make.BuildStatus.Failed:
         return False, 0
     elif m.state == make.BuildStatus.NoMain:
@@ -61,7 +62,17 @@ if __name__ == "__main__":
     logging.info("开始构建")
     if not args.skipLuaDependenciesCheck:
         ldc.LuaDependenciesChecker(LUA_MODULES_DIR, LUA_DEPENDENCIES, luaVersion)
-        # region: 构建
+    # region: 构建
+    # Haxe 编译服务器
+    haxeCompilerServerPort: str = args.hc_server_port
+    if args.debug and (args.hc_server_port != None):
+        if haxeCompilerServerPort.isdigit() and int(haxeCompilerServerPort) >= 0 and int(haxeCompilerServerPort) <= 65535:
+            sp.backgroundSubprocess(["haxe", "--wait", haxeCompilerServerPort])
+            logging.info("启动 Haxe 编译服务器加速后续构建...")
+            args.hc_server_port = int(haxeCompilerServerPort)
+        else:
+            logging.warning("无效的 Haxe 编译服务器的监听端口端口")
+            args.hc_server_port = -1
     logging.log(25, f"开始构建 :: {args.script}")
     loopMode = args.debug
     if loopMode:
@@ -77,6 +88,7 @@ if __name__ == "__main__":
             wd.wait()
             logging.info("检测到文件有修改")
     else:
+        args.hc_server_port = -1
         s, size = build()
         if s:
             logging.log(25, f"构建成功，文件大小 {size}B")

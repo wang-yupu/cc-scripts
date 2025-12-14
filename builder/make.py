@@ -41,7 +41,7 @@ class BuildStep:
     size: int
     finalFileName: str
 
-    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path, minify=True, bundle=True, debugLogs=True) -> None:
+    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path, minify=True, bundle=True, debugLogs=True, hcServerPort=-1) -> None:
         self._scriptDir = scriptDir
         self._script = script
         self._buildDir = buildDir
@@ -49,6 +49,7 @@ class BuildStep:
         self._doMinify = minify
         self._doBundle = bundle
         self._debugLogs = debugLogs
+        self._hcServerPort = hcServerPort
 
         try:
             self._checkBasics()
@@ -74,8 +75,9 @@ class BuildStep:
     _doBundle: bool
     _doMinify: bool
     _debugLogs: bool
+    _hcServerPort: int
 
-    _makedFileName: str
+    _madeFileName: str
 
     def _checkBasics(self):
         # 检查是否存在那个脚本
@@ -146,6 +148,8 @@ class BuildStep:
             haxeMetaArgs.append("-D")
             haxeMetaArgs.append(f"{k}={v}")
         haxeGenericArgs.extend(haxeMetaArgs)
+        if self._hcServerPort >= 0:
+            haxeGenericArgs.extend(["--connect", str(self._hcServerPort)])
         if self._meta.enableFMT:
             self._steps.append((["haxe", *haxeGenericArgs, '-main', f'fmt.FMTMain', '-D', f'fmtmain={self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
         else:
@@ -199,14 +203,14 @@ class BuildStep:
                 raise Exception()
             current = step[2]
 
-        self._makedFileName = current
-        logging.info(f"构建流程结束，输出文件: {self._makedFileName}")
+        self._madeFileName = current
+        logging.info(f"构建流程结束，输出文件: {self._madeFileName}")
 
     def _doFinal(self):
-        finalFile = (self._buildBase/self._makedFileName)
+        finalFile = (self._buildBase/self._madeFileName)
         distFile = (self._distDir/f"{self._script}_{self._meta.version}.lua")
         shutil.copyfile(finalFile, distFile)
 
         self.size = finalFile.stat().st_size
         self.state = BuildStatus.Success
-        self.finalFileName = self._makedFileName
+        self.finalFileName = self._madeFileName
