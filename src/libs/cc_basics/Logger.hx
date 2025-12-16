@@ -2,17 +2,20 @@ package cc_basics;
 
 import cc_basics.Enums;
 import cc_basics.peripherals.Monitor;
+import cc_basics.fio.FIO;
 
 enum LoggerTarget {
 	local;
 	monitor(p:Monitor);
-	file;
+	file(name:String);
 	none;
 }
 
 class Logger {
 	private static var target:LoggerTarget = LoggerTarget.local;
 	public static var level:Int = 0;
+
+	private static var fioObj:FIOFileOpHandler = null;
 
 	private static function log(foreground:Color, background:Color, ...args) {
 		var str = new StringBuf();
@@ -39,7 +42,12 @@ class Logger {
 				}
 				p.setBackgroundColor(Color.BLACK);
 
-			case file:
+			case file(path):
+				if (fioObj == null) {
+					fioObj = new FIO(path).open(FileMode.updateErase);
+				}
+
+				fioObj.write(str.toString());
 				return;
 
 			case none:

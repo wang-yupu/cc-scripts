@@ -21,7 +21,7 @@ enum SlotMovingResult {
 	Failed;
 }
 
-private class Slot {
+class Slot {
 	private var parent:GenericInventory;
 	private var slot:Int;
 	private var item:ItemDetail;

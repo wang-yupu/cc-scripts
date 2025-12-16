@@ -217,7 +217,7 @@ class FIOFileOpHandler {
 
 	@:allow(FIO)
 	public function new(p:FIO, m:FileMode) {
-		if (!p.exists() || p.isDir()) {
+		if ((!p.exists() || p.isDir()) && ([FileMode.read, FileMode.write, FileMode.updateKeep].contains(m))) {
 			throw new Exception("File is not exists or is a dir");
 		}
 		this.lf = CC_io.open(p.toString(), fileModeToStringMap[m]);
