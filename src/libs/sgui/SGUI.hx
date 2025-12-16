@@ -1,5 +1,6 @@
 package sgui;
 
+import haxe.Exception;
 import cc_basics.Base;
 import cc_basics.Enums.Color;
 import cc_basics.Logger;
@@ -15,8 +16,13 @@ import sgui.containers.RootContainer;
 import sgui.events.Events;
 import sgui.widgets.Button;
 
+private enum SGUIOutputTarget {
+	Virtual(size:{width:Int, height:Int});
+	Monitor(monitor:Monitor);
+}
+
 class SGUI {
-	public var monitor(default, null):Monitor;
+	public var monitor(default, null):SGUIOutputTarget;
 	public var root(default, null):RootContainer;
 
 	public var onRelease:TouchHandler;
@@ -41,24 +47,37 @@ class SGUI {
 	private var keyDown:Array<Int> = [];
 	private var lastTookTime:Float = 0.0;
 
-	public function new(monitor:Monitor) {
-		this.monitor = monitor;
-		monitorId = monitor.getID();
-		var dims = readMonitorSize();
+	public function new(monitor:Null<Monitor> = null, size:Null<{width:Int, height:Int}> = null) {
+		var dims:{
+			width:Int,
+			height:Int
+		};
+		if (monitor != null) {
+			this.monitor = SGUIOutputTarget.Monitor(monitor);
+			monitorId = monitor.getID();
+			dims = readMonitorSize();
+
+			if (!monitor.isLocal()) {
+				Base.print("[SGUI Tips] No keyboard peripheral? type your things in native term!");
+			}
+			Logger.info("[SGUI] initialised for monitor ", monitorId, " (", monitorWidth, "x", monitorHeight, ")");
+		} else if (size != null) {
+			dims = size;
+			this.monitor = SGUIOutputTarget.Virtual(size);
+			this.monitorId = null;
+		} else {
+			Logger.error("[SGUI] Failed to initalize SGUI instance (NO OUTPUT TARGET)");
+			throw new Exception("No output target");
+		}
 		monitorWidth = dims.width;
 		monitorHeight = dims.height;
 		fbuf = new FrameBuffer(monitorWidth, monitorHeight);
 		root = new RootContainer(monitorWidth, monitorHeight);
 		buttonGrid = [];
 		ensureButtonGrid();
-
-		if (!this.monitor.isLocal()) {
-			Base.print("[SGUI Tips] No keyboard? type your things in native term!");
-		}
-		Logger.info("[SGUI] initialised for monitor ", monitorId, " (", monitorWidth, "x", monitorHeight, ")");
 	}
 
-	public function update():Void {
+	public function update():FrameBuffer {
 		var st = Base.clock();
 		ensureSize();
 		if (root.needsLayout()) {
@@ -71,11 +90,19 @@ class SGUI {
 		if (this.showFPS) {
 			fbuf.writeText(0, 0, '${this.lastTookTime}s', Color.WHITE, Color.CYAN);
 		}
-		fbuf.syncToMonitor(monitor);
+		switch (this.monitor) {
+			case Virtual(size):
+				null;
+			case Monitor(mo):
+				fbuf.syncToMonitor(mo);
+		}
+
 		rebuildButtonLookup();
 		if (this.showFPS) {
 			this.lastTookTime = Base.clock() - st;
 		}
+
+		return fbuf;
 	}
 
 	public function startBackgroundUpdate(interval:Float = 0):Void {
@@ -178,28 +205,35 @@ class SGUI {
 		ensureSize(true);
 	}
 
-	public inline function handleRawEvent(event:Array<Dynamic>):Void {
+	public inline function handleRawEvent(event:Array<Dynamic>, offset:{x:Int, y:Int} = null):Void {
 		if (event == null || event.length == 0) {
 			return;
+		}
+		var offsetX:Int = 0;
+		var offsetY:Int = 0;
+		if (offset != null) {
+			var offsetNotNull:{x:Int, y:Int} = offset;
+			offsetX = offsetNotNull.x;
+			offsetY = offsetNotNull.y;
 		}
 		Logger.debug("[SGUI] event fired :: ", event);
 		var name = Std.string(event[0]);
 		switch (name) {
 			case "monitor_touch":
 				if (event.length >= 4 && matchesMonitor(event[1])) {
-					handleRelease(Std.int(event[2]) - 1, Std.int(event[3]) - 1);
+					handleRelease(Std.int(event[2]) - 1 + offsetX, Std.int(event[3]) - 1 + offsetY);
 				}
 			case "mouse_up":
 				if (event.length >= 4) {
-					handleRelease(Std.int(event[2]) - 1, Std.int(event[3]) - 1);
+					handleRelease(Std.int(event[2]) - 1 + offsetX, Std.int(event[3]) - 1 + offsetY);
 				}
 			case "mouse_scroll":
 				if (event.length >= 4) {
-					handleScroll(Std.int(event[1]), Std.int(event[2]) - 1, Std.int(event[3]) - 1);
+					handleScroll(Std.int(event[1]), Std.int(event[2]) - 1 + offsetX, Std.int(event[3]) - 1 + offsetY);
 				}
 			case "mouse_drag":
 				if (event.length >= 4) {
-					handleDrag(Std.int(event[2]) - 1, Std.int(event[3]) - 1);
+					handleDrag(Std.int(event[2]) - 1 + offsetX, Std.int(event[3]) - 1 + offsetY);
 				}
 			case "char":
 				if (event.length >= 2) {
@@ -256,10 +290,13 @@ class SGUI {
 		for (k in this.keyDown) {
 			var kr = resolveKey(k);
 			var mod = MODIFIER_MAP.get(kr);
-			if (this.exitKey != null) {
-				if (this.exitKey == kr) {
-					this.monitor.clear(Color.BLACK);
-					ThreadManager.quitSafe();
+			if (this.exitKey == kr) {
+				switch (this.monitor) {
+					case Virtual(size):
+						null;
+					case Monitor(monitor):
+						monitor.clear(Color.BLACK);
+						ThreadManager.quitSafe();
 				}
 			}
 			if (mod != null) {
@@ -415,26 +452,31 @@ class SGUI {
 	}
 
 	private function readMonitorSize():{width:Int, height:Int} {
-		var size:Dynamic = monitor.getSize();
-		var width = monitorWidth;
-		var height = monitorHeight;
-		if (Std.isOfType(size, Array)) {
-			var arr:Array<Dynamic> = cast size;
-			if (arr.length >= 3) {
-				width = Std.int(arr[1]);
-				height = Std.int(arr[2]);
-			} else if (arr.length >= 2) {
-				width = Std.int(arr[0]);
-				height = Std.int(arr[1]);
-			}
+		switch (this.monitor) {
+			case Virtual(size):
+				return size;
+			case Monitor(monitor):
+				var size:Dynamic = monitor.getSize();
+				var width = monitorWidth;
+				var height = monitorHeight;
+				if (Std.isOfType(size, Array)) {
+					var arr:Array<Dynamic> = cast size;
+					if (arr.length >= 3) {
+						width = Std.int(arr[1]);
+						height = Std.int(arr[2]);
+					} else if (arr.length >= 2) {
+						width = Std.int(arr[0]);
+						height = Std.int(arr[1]);
+					}
+				}
+				if (width <= 0) {
+					width = 1;
+				}
+				if (height <= 0) {
+					height = 1;
+				}
+				return {width: width, height: height};
 		}
-		if (width <= 0) {
-			width = 1;
-		}
-		if (height <= 0) {
-			height = 1;
-		}
-		return {width: width, height: height};
 	}
 
 	private inline function onCCEvent(event:String, ...args:Dynamic):Void {

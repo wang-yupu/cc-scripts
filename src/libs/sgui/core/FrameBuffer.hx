@@ -154,6 +154,29 @@ class FrameBuffer {
 		return copy;
 	}
 
+	public function compose(subbuf:FrameBuffer, sx:Int, sy:Int, wmax:Int = -1, hmax:Int = -1):Void {
+		var widthToCopy:Int = (wmax == -1) ? subbuf.width : Math.floor(Math.min(wmax, subbuf.width));
+		var heightToCopy:Int = (hmax == -1) ? subbuf.height : Math.floor(Math.min(hmax, subbuf.height));
+
+		for (y in 0...heightToCopy) {
+			var targetY = sy + y;
+			if (targetY >= height) {
+				break;
+			}
+
+			for (x in 0...widthToCopy) {
+				var targetX = sx + x;
+				if (targetX >= width) {
+					break;
+				}
+
+				chars[targetY][targetX] = subbuf.chars[y][x];
+				fore[targetY][targetX] = subbuf.fore[y][x];
+				back[targetY][targetX] = subbuf.back[y][x];
+			}
+		}
+	}
+
 	private inline function inside(x:Int, y:Int):Bool {
 		return x >= 0 && x < width && y >= 0 && y < height;
 	}
