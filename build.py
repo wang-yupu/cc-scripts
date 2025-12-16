@@ -24,6 +24,10 @@ LIBS_DIR = pathlib.Path("./src/libs")
 WATCHDOG_WATCH_DIR = pathlib.Path("./src")
 AFTERBUILD_CONFIG = pathlib.Path("./afterbuild.json")
 
+CC_DEFAULT_SIZE_LIMIT_COMPUTER = 1000000
+CC_DEFAULT_SIZE_LIMIT_FLOPPY = 125000
+CC_DEFAULT_MAX_UPLOAD_SIZE = 524288
+
 
 def build() -> tuple[bool, int]:
     m = make.BuildStep(SCRIPTS_DIR, args.script, BUILD_DIR, DIST_DIR, args.minify, not args.disableBundle, args.debugLogs, args.hc_server_port)
@@ -92,5 +96,11 @@ if __name__ == "__main__":
         s, size = build()
         if s:
             logging.log(25, f"构建成功，文件大小 {size}B")
+            if size > CC_DEFAULT_SIZE_LIMIT_COMPUTER*0.9:
+                logging.warning(f"构建结果接近或超过默认计算机磁盘大小，可能无法写入计算机")
+            if size > CC_DEFAULT_SIZE_LIMIT_FLOPPY*0.95:
+                logging.warning(f"构建结果接近或超过默认软盘大小，可能无法写入软盘")
+            if size > CC_DEFAULT_MAX_UPLOAD_SIZE*0.9:
+                logging.warning(f"构建结果接近或超过默认上传大小限制，可能无法拖动上传")
         else:
             logging.warning("构建失败")

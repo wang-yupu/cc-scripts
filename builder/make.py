@@ -5,6 +5,7 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 import re
+from typing import Optional
 
 import builder.subprocessUtil as su
 from builder.ensureEnviroment import Version
@@ -41,7 +42,7 @@ class BuildStep:
     size: int
     finalFileName: str
 
-    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path, minify=True, bundle=True, debugLogs=True, hcServerPort=-1) -> None:
+    def __init__(self, scriptDir: Path, script: str, buildDir: Path, distDir: Path, minify: int = 2, bundle=True, debugLogs=True, hcServerPort=-1) -> None:
         self._scriptDir = scriptDir
         self._script = script
         self._buildDir = buildDir
@@ -70,10 +71,10 @@ class BuildStep:
     _distDir: Path
     _buildBase: Path
 
-    _steps: list[tuple[list[str | ReplaceTo | tuple[ReplaceTo, str]], str, str]]
+    _steps: list[tuple[list[str | ReplaceTo | tuple[ReplaceTo, str]], str, str, Optional[bool]]]
     _meta: Metadata
     _doBundle: bool
-    _doMinify: bool
+    _doMinify: int
     _debugLogs: bool
     _hcServerPort: int
 
@@ -151,13 +152,15 @@ class BuildStep:
         if self._hcServerPort >= 0:
             haxeGenericArgs.extend(["--connect", str(self._hcServerPort)])
         if self._meta.enableFMT:
-            self._steps.append((["haxe", *haxeGenericArgs, '-main', f'fmt.FMTMain', '-D', f'fmtmain={self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
+            self._steps.append((["haxe", *haxeGenericArgs, '-main', f'fmt.FMTMain', '-D', f'fmtmain={self._script}.Main'], "Haxe -> Lua", "haxe.lua", False))
         else:
-            self._steps.append((["haxe", *haxeGenericArgs, '-main', f'{self._script}.Main'], "Haxe -> Lua", "haxe.lua"))
+            self._steps.append((["haxe", *haxeGenericArgs, '-main', f'{self._script}.Main'], "Haxe -> Lua", "haxe.lua", False))
         if self._doBundle:
-            self._steps.append((["luabundler", "bundle", ReplaceTo.current, "-o", (ReplaceTo.sthInBuildBase, "bundled.lua"), "-p", "src/native"], "捆绑多个Lua文件", "bundled.lua"))
-        if self._doMinify:
-            self._steps.append((["luasrcdiet", ReplaceTo.current, '-o', (ReplaceTo.sthInBuildBase, "minify.lua"), "--opt-locals", "--opt-whitespace", '--opt-eols'], "简化Lua文件", 'minify.lua'),)
+            self._steps.append((["luabundler", "bundle", ReplaceTo.current, "-o", (ReplaceTo.sthInBuildBase, "bundled.lua"), "-p", "src/native"], "捆绑多个Lua文件", "bundled.lua", False))
+        if self._doMinify == 2:
+            self._steps.append((["luasrcdiet", ReplaceTo.current, '-o', (ReplaceTo.sthInBuildBase, "minify.lua"), "--opt-locals", "--opt-whitespace", '--opt-eols', '--noopt-binequiv', '--noopt-srcequiv'], "简化Lua文件", 'minify.lua', False),)
+        if self._doMinify == 1:
+            self._steps.append((["luamin", "-f", ReplaceTo.current], "简化Lua文件", 'minify.lua', True),)
 
     def _runCommands(self):
         current: str = ""
@@ -192,9 +195,13 @@ class BuildStep:
                         logging.fatal("错误的构建命令定义！(2)")
                         raise Exception()
             logging.info(f"命令: {' '.join(cmds)}")
-            logging.info(f"将输出文件: {step[2]}")
+            logging.info(f"将输出文件: {step[2]} {'(启用stdout重定向)' if step[3] else ''}")
 
-            r = su.Subprocess(cmds)
+            redir = None
+            if step[3]:
+                redir = (self._buildBase / step[2]).open("w+")
+
+            r = su.Subprocess(cmds, redir)
             v = r.read()
             if r.getReturn() != 0:
                 logging.error(f"构建步骤失败（返回值不为0: {r.getReturn()}）")

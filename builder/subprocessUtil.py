@@ -6,11 +6,11 @@ class Subprocess:
     process: subprocess.Popen | None
     executeableFound: bool
 
-    def __init__(self, command: list[str]) -> None:
+    def __init__(self, command: list[str], stdout=None) -> None:
         try:
             self.process = subprocess.Popen(
                 command,
-                stdout=subprocess.PIPE,
+                stdout=subprocess.PIPE if stdout is None else stdout,
                 stderr=subprocess.PIPE,
                 text=True
             )
@@ -24,6 +24,7 @@ class Subprocess:
     def read(self) -> str:
         if self.process:
             out, err = self.process.communicate()
+            out = "" if out is None else out
             return out+err
         else:
             raise Exception("No process!")
