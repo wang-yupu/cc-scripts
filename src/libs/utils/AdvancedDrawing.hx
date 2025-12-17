@@ -25,10 +25,10 @@ class AdvancedDrawing {
 				case Down:
 					{x: 2 * cx - x, y: 2 * cy - y};
 
-				case Left:
+				case Right:
 					{x: cx - (y - cy), y: cy + (x - cx)};
 
-				case Right:
+				case Left:
 					{x: cx + (y - cy), y: cy - (x - cx)};
 			}
 		}
@@ -45,5 +45,9 @@ class AdvancedDrawing {
 				fbuf.setCell(p.x, p.y, char, fg, bg);
 			}
 		}
+	}
+
+	public static function alignedText(fbuf:FrameBuffer, y:Int, align:Float, text:String, fg:Color = null, bg:Color = null) {
+		fbuf.writeText(Math.floor((fbuf.width - text.length) * align), y, text, fg, bg);
 	}
 }

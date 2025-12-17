@@ -101,15 +101,15 @@ class FrameBuffer {
 		back[y][x] = toBlitChar(bg);
 	}
 
-	public function writeText(x:Int, y:Int, text:String, fg:Color, bg:Color):Void {
+	public function writeText(x:Int, y:Int, text:String, fg:Color = null, bg:Color = null):Void {
 		if (text == null || text.length == 0) {
 			return;
 		}
 		if (y < 0 || y >= height) {
 			return;
 		}
-		var fgCode = toBlitChar(fg);
-		var bgCode = toBlitChar(bg);
+		var fgCode = fg == null ? null : toBlitChar(fg);
+		var bgCode = bg == null ? null : toBlitChar(bg);
 		var cursor = x;
 		for (i in 0...text.length) {
 			if (cursor >= width) {
@@ -117,8 +117,11 @@ class FrameBuffer {
 			}
 			if (cursor >= 0) {
 				chars[y][cursor] = text.substr(i, 1);
-				fore[y][cursor] = fgCode;
-				back[y][cursor] = bgCode;
+				if (fgCode != null)
+					fore[y][cursor] = fgCode;
+
+				if (bgCode != null)
+					back[y][cursor] = bgCode;
 			}
 			cursor++;
 		}

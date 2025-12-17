@@ -15,6 +15,8 @@ private extern class CC_os {
 	static function pullEvent(eventFilter:String = null):Array<Dynamic>;
 	static function queueEvent(name:String, ...args:Dynamic):Void;
 	static function date(fmt:String, time:Int):String;
+	static function startTimer(time:Float):Int;
+	static function cancelTimer(id:Int):Void;
 }
 
 class Base {
@@ -61,5 +63,13 @@ class Base {
 
 	public static function toReadableTime(time:Int):String {
 		return CC_os.date("%Y/%m/%d %H:%M:%S", time);
+	}
+
+	public static function startTimer(time:Float):Int {
+		return CC_os.startTimer(time);
+	}
+
+	public static function cancelTimer(id:Int) {
+		CC_os.cancelTimer(id);
 	}
 }
