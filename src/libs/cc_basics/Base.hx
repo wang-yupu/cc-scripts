@@ -12,6 +12,7 @@ private extern class CC_globals {
 private extern class CC_os {
 	static function clock():Float;
 	static function time(typ:String = "ingame"):Float;
+	static function epoch(typ:String = "utc"):Int;
 	static function pullEvent(eventFilter:String = null):Array<Dynamic>;
 	static function queueEvent(name:String, ...args:Dynamic):Void;
 	static function date(fmt:String, time:Int):String;
@@ -46,6 +47,10 @@ class Base {
 
 	public static function time(typ:String = "ingame"):Float {
 		return CC_os.time(typ);
+	}
+
+	public static function epoch(typ:String = "utc"):Int {
+		return CC_os.epoch(typ);
 	}
 
 	public inline static function pullEvent(?eventFilter:String):Array<Dynamic> {
