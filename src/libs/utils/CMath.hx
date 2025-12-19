@@ -14,4 +14,11 @@ class VecUtils {
 	public static function sub(a:Vec2i, b:Vec2i) {
 		return {x: a.x - b.x, y: a.y - b.y};
 	}
+
+	public static function copy(s:Vec2i):Vec2i {
+		if (s == null) {
+			return null;
+		}
+		return {x: s.x, y: s.y};
+	}
 }

@@ -92,7 +92,7 @@ class FrameBuffer {
 		}
 	}
 
-	public function setCell(x:Int, y:Int, char:String, fg:Color, bg:Color):Void {
+	public inline function setCell(x:Int, y:Int, char:String, fg:Color, bg:Color):Void {
 		if (!inside(x, y)) {
 			return;
 		}

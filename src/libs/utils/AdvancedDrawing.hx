@@ -51,6 +51,10 @@ class AdvancedDrawing {
 		fbuf.writeText(Math.floor((fbuf.width - text.length) * align), y, text, fg, bg);
 	}
 
+	public static function alignedTextWithX(fbuf:FrameBuffer, pos:Vec2i, w:Int, align:Float, text:String, fg:Color = null, bg:Color = null) {
+		fbuf.writeText(pos.x + Math.floor((w - text.length) * align), pos.y, text, fg, bg);
+	}
+
 	public static function drawLine(fbuf:FrameBuffer, p1:Vec2i, p2:Vec2i, char:String, fg:Color, bg:Color) {
 		var x1 = p1.x;
 		var y1 = p1.y;
