@@ -60,6 +60,13 @@ class SpeakerUtils {
 		this.spk.playNote(Instrument.bell, Note.D4, 2);
 	}
 
+	public function ringLow() {
+		if (this.spk == null) {
+			return;
+		};
+		this.spk.playNote(Instrument.bell, Note.G3, 2);
+	}
+
 	public function boom() {
 		if (this.spk == null) {
 			return;

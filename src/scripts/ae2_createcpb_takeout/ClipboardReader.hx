@@ -1,17 +1,27 @@
 package ae2_createcpb_takeout;
 
-import cc_basics.Logger;
+import cc_basics.peripherals.advanced.MEBridge.AutocraftPromise;
 import haxe.ds.StringMap;
-import cc_basics.Base;
 import cc_basics.peripherals.advanced.BlockReader;
 
-typedef CraftStatus = {}
+enum MovingStatusEnum {
+	CannotCraft;
+	Crafting(promise:AutocraftPromise);
+	Pending;
+	NoCraftingNeeded(moved:Int);
+	Done;
+}
+
+typedef MovingStatus = {
+	displayString:String,
+	state:MovingStatusEnum
+}
 
 typedef Item = {
 	id:String,
 	amount:Int,
 	skip:Bool,
-	craftStatus:Null<CraftStatus>
+	movingStatus:Null<MovingStatus>
 }
 
 typedef ItemList = {
@@ -102,7 +112,7 @@ class ClipboardReader {
 						id: ID,
 						skip: skip,
 						amount: amount,
-						craftStatus: null
+						movingStatus: null
 					});
 				}
 			}
@@ -114,7 +124,7 @@ class ClipboardReader {
 		return Valid(r);
 	}
 
-	public function read(parse:Bool = true):ClipboardValidState {
+	public inline function read(parse:Bool = true):ClipboardValidState {
 		try {
 			return readI(parse);
 		} catch (e:Dynamic) {

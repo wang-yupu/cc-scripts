@@ -52,6 +52,10 @@ class Peripheral {
 		}
 	}
 
+	private inline function fcall(method:String, args:Rest<Any>):Any {
+		return CC_Peripheral.call(this.id, method, ...args);
+	}
+
 	public function getID():String {
 		return this.id;
 	}

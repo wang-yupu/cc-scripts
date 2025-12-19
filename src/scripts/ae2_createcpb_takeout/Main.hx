@@ -1,5 +1,7 @@
 package ae2_createcpb_takeout;
 
+import utils.StringFormatter;
+import cc_basics.peripherals.GenericInventory;
 import utils.AdvancedDrawing;
 import cc_basics.Enums.Side;
 import cc_basics.peripherals.Redstone.RedstonePin;
@@ -46,6 +48,7 @@ class Main {
 	private var blockReader:BlockReader;
 	private var clipboardReader:ClipboardReader;
 	private var MEAccess:MEBridge;
+	private var itemPutInto:GenericInventory;
 	private var state:State;
 	private var outControl:RedstonePin;
 
@@ -58,6 +61,7 @@ class Main {
 		this.blockReader = new BlockReader("block_reader_2");
 		this.clipboardReader = new ClipboardReader(this.blockReader);
 		this.MEAccess = new MEBridge("me_bridge_2");
+		this.itemPutInto = new GenericInventory("ae2:interface_0");
 		this.outControl = new RedstonePin(Side.FRONT);
 		this.wallMonitor = new Monitor(MonitorTarget.remote("monitor_2"));
 		this.wallMonitor.setScale(0.5);
@@ -179,7 +183,13 @@ class Main {
 
 		this.settingsConfirmButton = new Button("START", null, 3);
 		container.add(this.settingsConfirmButton);
-		this.settingsConfirmButton.onClick = this.startMoving;
+		this.settingsConfirmButton.onClick = function() {
+			if (this.state.getIndex() == State.WaitingForConfirm(null).getIndex()) {
+				this.startMoving();
+			} else {
+				this.state = State.WaitingForClipboard;
+			}
+		};
 
 		this.settingsAutocraftingSwitch = new Switch(true, null, 3);
 		this.settingsAutocraftingSwitch.onLabel = "Craft missing items";
@@ -202,18 +212,25 @@ class Main {
 		this.UISettings.update();
 	}
 
+	private var settingsLocked:Bool = false;
+
 	private function updateSettingsGUI() {
+		this.settingsConfirmButton.text = "Start";
 		if (this.state.getIndex() == State.WaitingForConfirm(null).getIndex()) {
 			this.settingsConfirmButton.enabled = true;
 			this.settingsConfirmButton.background = this.settingsConfirmButton.background == Color.GRAY ? Color.GREEN : Color.GRAY;
+		} else if (this.state.getIndex() == State.Done(null).getIndex()) {
+			this.settingsConfirmButton.background = Color.GREEN;
+			this.settingsConfirmButton.enabled = true;
+			this.settingsConfirmButton.text = "OK";
 		} else {
 			this.settingsConfirmButton.background = Color.LIGHT_GRAY;
 			this.settingsConfirmButton.enabled = false;
 		}
-		static var locked:Bool = false;
-		if ((this.state.getIndex() == State.Moving(null, null).getIndex()) != locked) {
-			locked = this.state.getIndex() == State.Moving(null, null).getIndex();
-			if (locked) {
+
+		if ((this.state.getIndex() == State.Moving(null, null).getIndex()) != settingsLocked) {
+			settingsLocked = this.state.getIndex() == State.Moving(null, null).getIndex();
+			if (settingsLocked) {
 				this.settingsAutocraftingSwitch.enabled = false;
 			}
 		}
@@ -238,7 +255,7 @@ class Main {
 
 	private function updateView() {
 		// GUI
-		if (this.lastItemList != this.currentItemList) {
+		if (this.lastItemList != this.currentItemList || this.forceUpdateItemList) {
 			this.drawItemList(this.currentItemList);
 			this.lastItemList = this.currentItemList;
 			this.forceUpdateItemList = false;
@@ -287,12 +304,17 @@ class Main {
 			var namespace:{s:String, c:Color} = Utils.NamespaceUtils.toShortNamespace(item.id);
 			this.itemListFBUF.writeText(0, index, '${item.amount}x ${name}');
 			var colors:Array<Color> = [Color.LIME, Color.LIGHT_GRAY, namespace.c, Color.PURPLE];
+			var strings:Array<String> = ['${item.amount}', "x ", namespace.s, name];
 			if (item.skip) {
 				for (i in 0...colors.length) {
 					colors[i] = Color.LIGHT_GRAY;
 				}
 			}
-			Utils.DrawUtils.writeTextParts(this.itemListFBUF, 0, index, ['${item.amount}', "x ", namespace.s, name], colors);
+			if (item.movingStatus != null) {
+				strings = strings.concat([" - ", item.movingStatus.displayString]);
+				colors = colors.concat([Color.LIGHT_GRAY, Color.CYAN]);
+			}
+			Utils.DrawUtils.writeTextParts(this.itemListFBUF, 0, index, strings, colors);
 
 			index++;
 		}
@@ -333,45 +355,174 @@ class Main {
 		}
 	}
 
+	private var movedItemTypeCount:Int = 0;
+	private var movedItemTotal:Int = 0;
+	private var rLast:Int = 1;
+	private var since:Int = null;
+
+	private final movingLimit:Int = 512; // 单次移动物品上限
+
+	private var frameNum:Int = 0;
+
 	private function sm() {
-		this.setProgress("Pending", 0);
+		this.frameNum++;
 		switch (this.state) {
 			case WaitingForClipboard:
 				this.updateList(null);
-				var r:ClipboardValidState = this.clipboardReader.read();
-				static var rLast:Int = 1;
+				if (this.frameNum % 2 == 0) {
+					var r:ClipboardValidState = this.clipboardReader.read();
 
-				switch (r) {
-					case NotDepot:
-						throw new Exception("WHERE IS THE DEPOT???");
-					case NoItem:
-						this.setProgress("Put clipboard on depot", 1);
-					case NotClipboard(id):
-						var name:String = id.split(":")[1];
-						this.setProgress('Not a clipboard: ${name}', 2);
-						if (r.getIndex() != rLast) this.spk.wrong();
-					case ClipboardNotItemList:
-						this.setProgress("Clipboard isn't an item list", 2);
-						if (r.getIndex() != rLast) this.spk.wrong();
-					case FailedToParse(e):
-						this.setProgress('Failed to parse data: ${e}', 3);
-						Logger.error('Exception: ${e}');
-					case Valid(items):
-						this.state = WaitingForConfirm(items);
-						this.spk.ring();
+					switch (r) {
+						case NotDepot:
+							throw new Exception("WHERE IS THE DEPOT???");
+						case NoItem:
+							this.setProgress("Put clipboard on depot", 1);
+						case NotClipboard(id):
+							var name:String = id.split(":")[1];
+							this.setProgress('Not a clipboard: ${name}', 2);
+							if (r.getIndex() != rLast) this.spk.wrong();
+						case ClipboardNotItemList:
+							this.setProgress("Clipboard isn't an item list", 2);
+							if (r.getIndex() != rLast) this.spk.wrong();
+						case FailedToParse(e):
+							this.setProgress('Failed to parse data: ${e}', 3);
+							Logger.error('Exception: ${e}');
+						case Valid(items):
+							this.state = WaitingForConfirm(items);
+							this.spk.ring();
+					}
+					rLast = r.getIndex();
 				}
-				rLast = r.getIndex();
 			case WaitingForConfirm(list):
 				this.setProgress("Confirm to continue", 1);
 
-				var r:ClipboardValidState = this.clipboardReader.read(false);
-				if (!Type.enumEq(r, ClipboardValidState.Valid(null))) {
-					this.state = WaitingForClipboard;
+				if (this.frameNum % 2 == 0) {
+					var r:ClipboardValidState = this.clipboardReader.read(false);
+					if (!Type.enumEq(r, ClipboardValidState.Valid(null))) {
+						this.state = WaitingForClipboard;
+					}
+					this.updateList(list);
 				}
-				this.updateList(list);
 			case Moving(list, option):
+				if (this.since == null) {
+					this.since = Math.floor(Base.clock());
+				}
+				var perctange:Float = Math.floor(this.movedItemTotal / list.total * 10000) / 100;
+				this.setProgress('Moving [${perctange}%]', 1);
+				var index:Int = -1;
+				for (i in list.list) {
+					index++;
+					if (i.skip) {
+						continue;
+					}
+					if (i.movingStatus == null) {
+						list.list[index].movingStatus = {
+							displayString: "Pending",
+							state: MovingStatusEnum.Pending
+						};
+					}
+					switch (i.movingStatus.state) {
+						case Done:
+							i.movingStatus.displayString = "Done";
+							continue;
+						case CannotCraft:
+							if (option.skipMissing) {
+								i.movingStatus.displayString = "Skipped";
+								continue;
+							} else {
+								var detail:MEItemDetail = this.MEAccess.getItemDetail(i.id);
+								if (detail == null) {
+									i.movingStatus.displayString = "No item detail";
+									i.movingStatus.state = CannotCraft;
+								} else {
+									if (detail.count >= i.amount) {
+										i.movingStatus.state = MovingStatusEnum.NoCraftingNeeded(0);
+										i.movingStatus.displayString = "Enough";
+									}
+									if (detail.craftable) {
+										i.movingStatus.state = MovingStatusEnum.Crafting(this.MEAccess.craft(i.id, i.amount));
+										i.movingStatus.displayString = "Crafting 1";
+									}
+								}
+								break;
+							}
+						case Crafting(promise): // 继续卡在这
+							i.movingStatus.displayString = "Crafting - Unknown status";
+							switch (promise.status()) {
+								case AutocraftStatus.NotStarted:
+									i.movingStatus.displayString = "Crafting - Not started";
+								case AutocraftStatus.Calculating:
+									i.movingStatus.displayString = "Crafting - Calculating";
+								case AutocraftStatus.Crafting(progress):
+									var perctangeString:String = Std.string(Math.floor(progress * 1000) / 10);
+									i.movingStatus.displayString = "Crafting - " + perctangeString + "%";
+								case CalculationFailed:
+									i.movingStatus.displayString = "Crafting - Caculation failed";
+									i.movingStatus.state = CannotCraft;
+								case Canceled:
+									i.movingStatus.displayString = "Crafting - Canceled";
+									i.movingStatus.state = CannotCraft;
+								case Done:
+									i.movingStatus.displayString = "Crafting complete";
+									i.movingStatus.state = NoCraftingNeeded(0);
+							}
+							break;
+						case NoCraftingNeeded(moved): // 有足够的物品
+							i.movingStatus.displayString = "Enough - Moved " + moved + "x";
+							// 决定移动数量
+							var remaining:Int = i.amount - moved;
+							if (remaining <= 0) {
+								i.movingStatus.state = MovingStatusEnum.Done;
+								movedItemTypeCount++;
+								this.spk.ringLow();
+							}
+							var movingCount:Int = Math.floor(Math.min(movingLimit, remaining));
+
+							switch (this.MEAccess.exportItemTo({
+								name: i.id,
+								count: movingCount
+							}, this.itemPutInto)) {
+								case Success(count):
+									i.movingStatus.state = MovingStatusEnum.NoCraftingNeeded(moved + count);
+
+								case Failed:
+									Logger.error("Unexpcted moving result.");
+									i.movingStatus.state = MovingStatusEnum.CannotCraft;
+							}
+						case Pending: // 决定新状态
+							var detail:MEItemDetail = this.MEAccess.getItemDetail(i.id);
+							if (detail == null) {
+								i.movingStatus.displayString = "No item detail";
+								i.movingStatus.state = CannotCraft;
+								continue;
+							}
+							if (detail.count >= i.amount) {
+								i.movingStatus.state = MovingStatusEnum.NoCraftingNeeded(0);
+								i.movingStatus.displayString = "Enough";
+							} else if (detail.craftable) {
+								i.movingStatus.state = MovingStatusEnum.Crafting(this.MEAccess.craft(i.id, i.amount));
+								i.movingStatus.displayString = "Crafting"; // Display string was locked by here
+							} else {
+								i.movingStatus.state = MovingStatusEnum.CannotCraft;
+								i.movingStatus.displayString = "Missing";
+							}
+					}
+				}
+
+				this.updateList(list, true);
+				if (list.list != null && movedItemTypeCount >= list.list.length) {
+					this.state = Done({
+						time: Math.floor(Base.clock()) - this.since,
+						total: list.total
+					});
+					this.spk.boom();
+				}
 
 			case Done(stat):
+				this.setProgress('Done! (Total ${stat.total} items, Took ${StringFormatter.secToString(stat.time)})', 1);
+				this.movedItemTypeCount = 0;
+				this.movedItemTotal = 0;
+				this.since = null;
 		}
 	}
 }

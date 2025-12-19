@@ -9,7 +9,7 @@ class BlockReader extends Peripheral {
 	}
 
 	public function getBlockData():Dynamic {
-		return this.call("getBlockData");
+		return this.fcall("getBlockData");
 	}
 
 	public function getBlockID():String {
