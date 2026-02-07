@@ -22,6 +22,8 @@ class Subprocess:
         return self.executeableFound
 
     def read(self) -> str:
+        if not self.executeableFound:
+            raise Exception("No executeable found!")
         if self.process:
             out, err = self.process.communicate()
             out = "" if out is None else out

@@ -60,6 +60,8 @@ class BuildStep:
             self._doFinal()
         except Exception as error:
             logging.error(f"构建出现内部错误: {error}")
+            import traceback
+            traceback.print_exc()
             self.state = BuildStatus.Failed
             return
 
